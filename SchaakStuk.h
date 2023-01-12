@@ -19,7 +19,7 @@ public:
     virtual std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
     virtual bool zet_geldig(int r, int k, Game &game) const;
     virtual bool zet_geldig(std::pair<int, int> zet, Game &game) const;
-    std::vector<std::pair<int, int>> filter_ongeldige_zetten(std::vector<std::pair<int, int>> zetten, Game &game) const;
+    virtual std::vector<std::pair<int, int>> filter_ongeldige_zetten(std::vector<std::pair<int, int>> zetten, Game &game) const;
     virtual Piece piece() const=0;      // Verander deze functie niet!
                                         // Deze functie wordt gebruikt door
                                         // setItem(x,y,SchaakStuk*) van
@@ -42,7 +42,7 @@ public:
     }
     bool zet_geldig(int r, int k, zetType type, Game &game) const;
     bool zet_geldig(std::pair<int, int> zet,  zetType type, Game &game) const;
-        std::vector<std::pair<int, int>> filter_ongeldige_zetten(std::vector<std::pair<int, int>> zetten, zetType type, Game &game) const;
+    std::vector<std::pair<int, int>> filter_ongeldige_zetten(std::vector<std::pair<int, int>> zetten, zetType type, Game &game) const;
     std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
     bool heeft_bewogen() const;
 };
@@ -50,7 +50,7 @@ public:
 class Toren:public SchaakStuk {
 public:
     Toren(zw kleur):SchaakStuk(kleur) {}
-
+    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
     Piece piece() const override {
         return Piece(Piece::Rook,getKleur()==wit?Piece::White:Piece::Black);
     }

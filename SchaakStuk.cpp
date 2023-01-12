@@ -88,3 +88,8 @@ std::vector<std::pair<int, int>> Pion::geldige_zetten(Game &game) const {
     if(zet_geldig(specialeZet, speciaal, game)) geldige_zetten.push_back(specialeZet);
     return geldige_zetten;
 }
+std::vector<std::pair<int, int>> Toren::geldige_zetten(Game &game) const {
+    std::vector<std::pair<int, int>> geldige_zetten = game.getVerticalAndHorizontalMoves(getPositie());
+    geldige_zetten = filter_ongeldige_zetten(geldige_zetten, game);
+    return geldige_zetten;
+}

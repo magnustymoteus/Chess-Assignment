@@ -27,6 +27,14 @@ public:
     bool hasPiece(int r, int k) const;
     bool hasFriendlyPiece(int r, int k, zw kleur) const;
     bool hasEnemyPiece(int r, int k, zw kleur) const;
+    std::vector<std::pair<int, int>> getDiagonalMoves(std::pair<int, int> pos) const;
+    std::vector<std::pair<int, int>> getHorizontalMoves(std::pair<int, int> pos) const;
+    std::vector<std::pair<int ,int>> getVerticalMoves(std::pair<int, int> pos) const;
+    std::vector<std::pair<int, int>> getVerticalAndHorizontalMoves(std::pair<int, int> pos) const;
+    std::vector<std::pair<int, int>> filterOngeldigeHorizontalen(std::vector<std::pair<int, int>> zetten) const;
+    std::pair<int, int> getMirrorX(std::pair<int, int> pos) const;
+    std::pair<int, int> getMirrorY(std::pair<int, int> pos) const;
+    std::pair<int, int> getMirrorXY(std::pair<int, int> pos) const;
 
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};

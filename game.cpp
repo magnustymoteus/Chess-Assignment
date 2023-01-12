@@ -103,3 +103,57 @@ bool Game::hasPiece(int r, int k) const {
     SchaakStuk *s = getPiece(r, k);
     return (s != nullptr);
 }
+std::vector<std::pair<int, int>> Game::getDiagonalMoves(std::pair<int, int> pos) const {
+    std::pair<int, int> current = pos;
+    std::vector<std::pair<int, int>> moves;
+    for(int i=0;i<8;i++, current.first++, current.second++) {
+        std::pair<int, int> currentMoves[4] = {current, getMirrorX(current), getMirrorY(current),
+                                               getMirrorXY(current)};
+        for(std::pair<int, int> currentMove : currentMoves) {
+            if(isBinnenGrens(currentMove.first, currentMove.second)) moves.push_back(currentMove);
+        }
+    }
+}
+std::vector<std::pair<int, int>> Game::getHorizontalMoves(std::pair<int, int> pos) const {
+    int currR = pos.first, currK = pos.second;
+    std::vector<std::pair<int, int>> moves;
+    for(int i=currR;i<8;i++) {
+        moves.push_back({i, currK});
+        moves.push_back(getMirrorX({i, currK}));
+    }
+    return moves;
+}
+std::vector<std::pair<int ,int>> Game::getVerticalMoves(std::pair<int, int> pos) const {
+    int currR = pos.first, currK = pos.second;
+    std::vector<std::pair<int, int>> moves;
+    for(int i=currK;i<8;i++) {
+        moves.push_back({currR, i});
+        moves.push_back(getMirrorY({currR, i}));
+    }
+    return moves;
+}
+std::vector<std::pair<int, int>> Game::getVerticalAndHorizontalMoves(std::pair<int, int> pos) const {
+    std::vector<std::pair<int, int>> horizontal = getHorizontalMoves(pos);
+    std::vector<std::pair<int, int>> vertical = getVerticalMoves(pos);
+    horizontal.insert(horizontal.end(), vertical.begin(), vertical.end());
+    return horizontal;
+}
+std::pair<int, int> Game::getMirrorX(std::pair<int, int> pos) const {
+    return {7-pos.first, pos.second};
+}
+std::pair<int, int> Game::getMirrorY(std::pair<int, int> pos) const {
+    return {pos.first, 7-pos.second};
+}
+std::pair<int, int> Game::getMirrorXY(std::pair<int, int> pos) const {
+    return getMirrorX(getMirrorY(pos));
+}
+std::vector<std::pair<int, int>> Game::filterOngeldigeHorizontalen(std::vector<std::pair<int, int>> zetten) const {
+    bool stop1=false, stop2=false;
+    std::vector<std::pair<int, int>> geldige_zetten;
+    for(int i=0;i<zetten.size();i+=2) {
+        if(hasPiece(zetten[i].first, zetten[i].second)) {
+            
+        }
+    }
+    return geldige_zetten;
+}
