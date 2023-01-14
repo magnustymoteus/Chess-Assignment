@@ -17,7 +17,94 @@ SchaakGUI::SchaakGUI():ChessWindow(nullptr) {
 // geklikt wordt. x,y geeft de positie aan waar er geklikt
 // werd; r is de 0-based rij, k de 0-based kolom
 void SchaakGUI::clicked(int r, int k) {
-    // Wat hier staat is slechts een voorbeeldje dat wordt afgespeeld ter illustratie.
+    if(g.hasPiece(r,k)) {
+        SchaakStuk *clickedPiece = g.getPiece(r, k);
+        if (g.validTurn(clickedPiece)) {
+            setTileFocus(r, k, true);
+        }
+    }
+    else {
+
+    }
+}
+
+void SchaakGUI::newGame()
+{}
+
+
+void SchaakGUI::save() {
+    QFile file;
+    if (openFileToWrite(file)) {
+        QDataStream out(&file);
+        out << QString("Rb") << QString("Hb") << QString("Bb") << QString("Qb") << QString("Kb") << QString("Bb") << QString("Hb") << QString("Rb");
+        for  (int i=0;i<8;i++) {
+            out << QString("Pb");
+        }
+        for  (int r=3;r<7;r++) {
+            for (int k=0;k<8;k++) {
+                out << QString(".");
+            }
+        }
+        for  (int i=0;i<8;i++) {
+            out << QString("Pw");
+        }
+        out << QString("Rw") << QString("Hw") << QString("Bw") << QString("Qw") << QString("Kw") << QString("Bw") << QString("Hw") << QString("Rw");
+    }
+}
+
+void SchaakGUI::open() {
+    QFile file;
+    if (openFileToRead(file)) {
+        try {
+            QDataStream in(&file);
+            QString debugstring;
+            for (int r=0;r<8;r++) {
+                for (int k=0;k<8;k++) {
+                    QString piece;
+                    in >> piece;
+                    debugstring += "\t" + piece;
+                    if (in.status()!=QDataStream::Ok) {
+                        throw QString("Invalid File Format");
+                    }
+                }
+                debugstring += "\n";
+            }
+            message(debugstring);
+        } catch (QString& Q) {
+            message(Q);
+        }
+    }
+    update();
+}
+
+
+void SchaakGUI::undo() {
+    message("Je hebt undo gekozen");
+}
+
+void SchaakGUI::redo() {}
+
+
+void SchaakGUI::visualizationChange() {
+    QString visstring = QString(displayMoves()?"T":"F")+(displayKills()?"T":"F")+(displayThreats()?"T":"F");
+    message(QString("Visualization changed : ")+visstring);
+}
+
+
+// Update de inhoud van de grafische weergave van het schaakbord (scene)
+// en maak het consistent met de game state in variabele g.
+void SchaakGUI::update() {
+    clearBoard();
+    for(int i=0;i<8;i++) {
+        for(int j=0;j<8;j++) {
+            if(g.hasPiece(i, j)) {
+                setItem(i, j, g.getPiece(i, j));
+            }
+        }
+    }
+}
+
+/*// Wat hier staat is slechts een voorbeeldje dat wordt afgespeeld ter illustratie.
     // Jouw code zal er helemaal anders uitzien en zal enkel de aanpassing in de spelpositie maken en er voor
     // zorgen dat de visualisatie (al dan niet via update) aangepast wordt.
 
@@ -118,82 +205,4 @@ void SchaakGUI::clicked(int r, int k) {
     delete p3;
     delete P;
     delete L;
-    delete Kw;
-}
-
-void SchaakGUI::newGame()
-{}
-
-
-void SchaakGUI::save() {
-    QFile file;
-    if (openFileToWrite(file)) {
-        QDataStream out(&file);
-        out << QString("Rb") << QString("Hb") << QString("Bb") << QString("Qb") << QString("Kb") << QString("Bb") << QString("Hb") << QString("Rb");
-        for  (int i=0;i<8;i++) {
-            out << QString("Pb");
-        }
-        for  (int r=3;r<7;r++) {
-            for (int k=0;k<8;k++) {
-                out << QString(".");
-            }
-        }
-        for  (int i=0;i<8;i++) {
-            out << QString("Pw");
-        }
-        out << QString("Rw") << QString("Hw") << QString("Bw") << QString("Qw") << QString("Kw") << QString("Bw") << QString("Hw") << QString("Rw");
-    }
-}
-
-void SchaakGUI::open() {
-    QFile file;
-    if (openFileToRead(file)) {
-        try {
-            QDataStream in(&file);
-            QString debugstring;
-            for (int r=0;r<8;r++) {
-                for (int k=0;k<8;k++) {
-                    QString piece;
-                    in >> piece;
-                    debugstring += "\t" + piece;
-                    if (in.status()!=QDataStream::Ok) {
-                        throw QString("Invalid File Format");
-                    }
-                }
-                debugstring += "\n";
-            }
-            message(debugstring);
-        } catch (QString& Q) {
-            message(Q);
-        }
-    }
-    update();
-}
-
-
-void SchaakGUI::undo() {
-    message("Je hebt undo gekozen");
-}
-
-void SchaakGUI::redo() {}
-
-
-void SchaakGUI::visualizationChange() {
-    QString visstring = QString(displayMoves()?"T":"F")+(displayKills()?"T":"F")+(displayThreats()?"T":"F");
-    message(QString("Visualization changed : ")+visstring);
-}
-
-
-// Update de inhoud van de grafische weergave van het schaakbord (scene)
-// en maak het consistent met de game state in variabele g.
-void SchaakGUI::update() {
-    clearBoard();
-    for(int i=0;i<8;i++) {
-        for(int j=0;j<8;j++) {
-            if(g.hasPiece(i, j)) {
-                setItem(i, j, g.getPiece(i, j));
-            }
-        }
-    }
-}
-
+    delete Kw;*/
