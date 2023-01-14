@@ -49,10 +49,9 @@ std::vector<std::pair<int, int>> Pion::filter_ongeldige_zetten(std::vector<std::
 bool Pion::heeft_bewogen() const {
     switch(getKleur()) {
         case wit:
-            return !(getPositie().first) == 6;
-            break;
+            return (getPositie().first) != 6;
         default:
-            return !(getPositie().first) == 1;
+            return (getPositie().first) != 1;
     }
 }
 
@@ -85,7 +84,7 @@ std::vector<std::pair<int, int>> Loper::geldige_zetten(Game &game) const {
     std::vector<std::pair<int, int>> geldige_zetten;
     std::vector<std::pair<int, int>> diagonale_zetten = game.getDiagonalMoves(getPositie());
     diagonale_zetten = game.filterBlockedMoves(diagonale_zetten, 4, getKleur());
-    geldige_zetten = game.concatenateMoves({diagonale_zetten});
+    geldige_zetten = diagonale_zetten;
     return geldige_zetten;
 }
 std::vector<std::pair<int, int>> Koningin::geldige_zetten(Game &game) const {

@@ -24,7 +24,8 @@ public:
     SchaakStuk * getPiece(int r, int k) const;
     void printBord() const;
     bool isBinnenGrens(int r, int k) const;
-    void setPiece(int r, int k, SchaakStuk* s);
+    void setPiece(int r, int k, SchaakStuk* s, bool deletePreviousPos=false);
+    void removePiece(int r, int k);
     bool hasPiece(int r, int k) const;
     bool hasFriendlyPiece(int r, int k, zw kleur) const;
     bool hasEnemyPiece(int r, int k, zw kleur) const;

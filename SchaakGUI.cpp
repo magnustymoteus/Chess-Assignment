@@ -30,12 +30,11 @@ void SchaakGUI::clicked(int r, int k) {
     }
     else {
         if(selectedPiece->isZetGeldig(r, k)) {
-            g.setPiece(r,k, selectedPiece);
-            g.printBord();
+            g.setPiece(r, k, selectedPiece, true);
             g.nextTurn();
             update();
         }
-        else {
+        else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
             message("Deze zet is ongeldig.");
         }
         selectedPiece = nullptr;
@@ -125,6 +124,7 @@ void SchaakGUI::update() {
             }
         }
     }
+    g.updateAllValidMoves();
 }
 
 /*// Wat hier staat is slechts een voorbeeldje dat wordt afgespeeld ter illustratie.

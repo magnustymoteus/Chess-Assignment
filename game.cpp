@@ -22,6 +22,7 @@ void Game::printBord() const {
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 }
 void Game::updateAllValidMoves() {
     for(int i=0;i<schaakBord.size();i++) {
@@ -94,15 +95,18 @@ SchaakStuk * Game::getPiece(int r, int k) const {
 // Als er al een schaakstuk staat, wordt het overschreven.
 // Bewaar in jouw datastructuur de *pointer* naar het schaakstuk,
 // niet het schaakstuk zelf.
-void Game::setPiece(int r, int k, SchaakStuk* s)
+void Game::setPiece(int r, int k, SchaakStuk* s, bool deletePreviousPos)
 {
     if(isBinnenGrens(r, k) && s != nullptr) {
-       schaakBord[r][k] = s;
-       schaakBord[s->getPositie().first][s->getPositie().second] = nullptr;
+        if(deletePreviousPos) removePiece(s->getPositie().first, s->getPositie().second);
+        schaakBord[r][k] = s;
         s->setPositie({r, k}, *this);
     }
    else if(!isBinnenGrens(r, k)) throw std::invalid_argument("not inside chess boundary");
    else if(s == nullptr) throw std::invalid_argument("chess piece is a null pointer");
+}
+void Game::removePiece(int r, int k) {
+    schaakBord[r][k] = nullptr;
 }
 bool Game::isBinnenGrens(int r, int k) const {
     return ((0<=r && r<=7) && (0<=k && k<=7));
@@ -125,24 +129,25 @@ bool Game::hasPiece(int r, int k) const {
     return (s != nullptr);
 }
 std::vector<std::pair<int, int>> Game::getDiagonalMoves(std::pair<int, int> pos) const {
-    std::pair<int, int> current = {pos.first+1, pos.second+1};
+    std::pair<int, int> current = {pos.first-1, pos.second-1};
     std::vector<std::pair<int, int>> moves;
-    for(int i=0;i<8;i++, current.first++, current.second++) {
+    while(current.first >= 0 && current.second >= 0) {
         std::pair<int, int> currentMoves[4] = {current, getMirrorX(current), getMirrorY(current),
                                                getMirrorXY(current)};
         for(std::pair<int, int> currentMove : currentMoves) {
             if(isBinnenGrens(currentMove.first, currentMove.second)) moves.push_back(currentMove);
         }
+        current.first--, current.second--;
     }
     return moves;
 }
 std::vector<std::pair<int, int>> Game::getHorizontalMoves(std::pair<int, int> pos) const {
     int currR = pos.first, currK = pos.second+1;
     std::vector<std::pair<int, int>> moves;
-    int i=currR;
-    while(i >= 0 && i <= 7) {
-        moves.push_back({i, currK});
-        moves.push_back(getMirrorY({i, currK}));
+    int i=currK;
+    while(i <= 7) {
+        moves.push_back({currR, i});
+        moves.push_back(getMirrorY({currR, i}));
         i++;
     }
     return moves;
@@ -150,10 +155,10 @@ std::vector<std::pair<int, int>> Game::getHorizontalMoves(std::pair<int, int> po
 std::vector<std::pair<int ,int>> Game::getVerticalMoves(std::pair<int, int> pos) const {
     int currR = pos.first+1, currK = pos.second;
     std::vector<std::pair<int, int>> moves;
-    int i = currK;
-    while(i >= 0 && i <= 7) {
-        moves.push_back({currR, i});
-        moves.push_back(getMirrorX({currR, i}));
+    int i = currR;
+    while(i <= 7) {
+        moves.push_back({i, currK});
+        moves.push_back(getMirrorX({i, currK}));
         i++;
     }
     return moves;
@@ -184,10 +189,6 @@ std::pair<int, int> Game::getMirrorXY(std::pair<int, int> pos) const {
     return getMirrorX(getMirrorY(pos));
 }
 std::vector<std::pair<int, int>> Game::filterBlockedMoves(std::vector<std::pair<int, int>> zetten, int aantalSpiegelZetten, zw kleur) const {
-    /*aantalSpiegelZetten:
-     * diagonaal: 4 'spiegelzetten'
-     * horizontaal & verticaal: 2 'spiegelzetten'
-     */
     std::vector<bool> stop(aantalSpiegelZetten, false);
     std::vector<std::pair<int, int>> geldige_zetten;
     for(int i=0;(i<zetten.size()) && (!allTrue(stop));i++) {
