@@ -17,20 +17,43 @@ SchaakGUI::SchaakGUI():ChessWindow(nullptr) {
 // geklikt wordt. x,y geeft de positie aan waar er geklikt
 // werd; r is de 0-based rij, k de 0-based kolom
 void SchaakGUI::clicked(int r, int k) {
-    if(g.hasPiece(r,k)) {
-        SchaakStuk *clickedPiece = g.getPiece(r, k);
-        if (g.validTurn(clickedPiece)) {
-            setTileFocus(r, k, true);
+    removeAllMarking();
+    if(!isPieceSelected()) {
+        if (g.hasPiece(r, k)) {
+            SchaakStuk *clickedPiece = g.getPiece(r, k);
+            if (g.validTurn(clickedPiece)) {
+                selectedPiece = clickedPiece;
+                setTileFocus(r, k, true);
+                selectTiles(clickedPiece->getValidMoves());
+            }
         }
     }
     else {
-
+        if(selectedPiece->isZetGeldig(r, k)) {
+            g.setPiece(r,k, selectedPiece);
+            g.printBord();
+            g.nextTurn();
+            update();
+        }
+        else {
+            message("Deze zet is ongeldig.");
+        }
+        selectedPiece = nullptr;
     }
 }
 
 void SchaakGUI::newGame()
 {}
 
+bool SchaakGUI::isPieceSelected() const {
+    return selectedPiece != nullptr;
+}
+
+void SchaakGUI::selectTiles(std::vector<std::pair<int, int>> tiles) {
+    for(std::pair<int, int> currentMove : tiles) {
+        setTileSelect(currentMove.first, currentMove.second, true);
+    }
+}
 
 void SchaakGUI::save() {
     QFile file;

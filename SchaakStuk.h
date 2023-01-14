@@ -27,6 +27,8 @@ public:
 
     std::pair<int, int> getPositie() const { return positie; }
     void setPositie(std::pair<int, int> newPositie, Game &game);
+    std::vector<std::pair<int, int>> getValidMoves() const {return validMoves;}
+    void updateValidMoves(Game &game);
 private:
     zw kleur;
     std::pair<int, int> positie;

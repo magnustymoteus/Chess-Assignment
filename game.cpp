@@ -14,6 +14,22 @@ Game::Game() {
 
 Game::~Game() {}
 
+void Game::printBord() const {
+    for(int i=0;i<schaakBord.size();i++) {
+        for(int j=0;j<schaakBord[i].size();j++) {
+            if(schaakBord[i][j] != nullptr) std::cout << "y ";
+            else std::cout << "n ";
+        }
+        std::cout << std::endl;
+    }
+}
+void Game::updateAllValidMoves() {
+    for(int i=0;i<schaakBord.size();i++) {
+        for(int j=0;j<schaakBord[i].size();j++) {
+            if(schaakBord[i][j] != nullptr) schaakBord[i][j]->updateValidMoves(*this);
+        }
+    }
+}
 // Zet het bord klaar; voeg de stukken op de jusite plaats toe
 void Game::setStartBord() {
     setPiece(0, 3, new Koningin(zwart));
@@ -36,11 +52,7 @@ void Game::setStartBord() {
             setPiece(7, 7-i, new Loper(wit)), setPiece(0,7-i,new Loper(zwart));
         }
     }
-    for(int i=2;i<6;i++) {
-        for(int j=0;j<8;j++) {
-            setPiece(i, j, nullptr);
-        }
-    }
+    updateAllValidMoves();
 }
 
 // Verplaats stuk s naar positie (r,k)
@@ -86,20 +98,27 @@ void Game::setPiece(int r, int k, SchaakStuk* s)
 {
     if(isBinnenGrens(r, k) && s != nullptr) {
        schaakBord[r][k] = s;
+       schaakBord[s->getPositie().first][s->getPositie().second] = nullptr;
         s->setPositie({r, k}, *this);
     }
    else if(!isBinnenGrens(r, k)) throw std::invalid_argument("not inside chess boundary");
+   else if(s == nullptr) throw std::invalid_argument("chess piece is a null pointer");
 }
 bool Game::isBinnenGrens(int r, int k) const {
     return ((0<=r && r<=7) && (0<=k && k<=7));
 }
 bool Game::hasFriendlyPiece(int r, int k, zw kleur) const {
-    SchaakStuk *s2 = getPiece(r, k);
-    return (s2 != nullptr && s2->getKleur() == kleur);
+    if(getPiece(r, k ) != nullptr) {
+        SchaakStuk *s2 = getPiece(r, k);
+        return (s2->getKleur() == kleur);
+    }
+    return false;
 }
 bool Game::hasEnemyPiece(int r, int k, zw kleur) const {
-    SchaakStuk *s2 = getPiece(r, k);
-    return (s2 != nullptr && s2->getKleur() != kleur);
+    if(getPiece(r, k ) != nullptr) {
+        SchaakStuk *s2 = getPiece(r, k);
+        return (s2->getKleur() != kleur);
+    }
 }
 bool Game::hasPiece(int r, int k) const {
     SchaakStuk *s = getPiece(r, k);
@@ -115,22 +134,27 @@ std::vector<std::pair<int, int>> Game::getDiagonalMoves(std::pair<int, int> pos)
             if(isBinnenGrens(currentMove.first, currentMove.second)) moves.push_back(currentMove);
         }
     }
+    return moves;
 }
 std::vector<std::pair<int, int>> Game::getHorizontalMoves(std::pair<int, int> pos) const {
     int currR = pos.first, currK = pos.second+1;
     std::vector<std::pair<int, int>> moves;
-    for(int i=currR;i<8;i++) {
+    int i=currR;
+    while(i >= 0 && i <= 7) {
         moves.push_back({i, currK});
-        moves.push_back(getMirrorX({i, currK}));
+        moves.push_back(getMirrorY({i, currK}));
+        i++;
     }
     return moves;
 }
 std::vector<std::pair<int ,int>> Game::getVerticalMoves(std::pair<int, int> pos) const {
     int currR = pos.first+1, currK = pos.second;
     std::vector<std::pair<int, int>> moves;
-    for(int i=currK;i<8;i++) {
+    int i = currK;
+    while(i >= 0 && i <= 7) {
         moves.push_back({currR, i});
-        moves.push_back(getMirrorY({currR, i}));
+        moves.push_back(getMirrorX({currR, i}));
+        i++;
     }
     return moves;
 }
@@ -169,9 +193,11 @@ std::vector<std::pair<int, int>> Game::filterBlockedMoves(std::vector<std::pair<
     for(int i=0;(i<zetten.size()) && (!allTrue(stop));i++) {
         if(!stop[i%stop.size()]) {
             int currentRow = zetten[i].first, currentColumn = zetten[i].second;
-            if(hasPiece(currentRow, currentColumn) || !isBinnenGrens(currentRow, currentColumn)) {
+            if(!isBinnenGrens(currentRow, currentColumn) || hasPiece(currentRow, currentColumn)) {
                 stop[i%stop.size()] = true;
-                if(hasEnemyPiece(currentRow, currentColumn, kleur)) geldige_zetten.push_back({currentRow, currentColumn});
+                if(isBinnenGrens(currentRow, currentColumn) &&
+                hasEnemyPiece(currentRow, currentColumn, kleur))
+                    geldige_zetten.push_back({currentRow, currentColumn});
             }
             else geldige_zetten.push_back({currentRow, currentColumn});
         }
@@ -180,14 +206,13 @@ std::vector<std::pair<int, int>> Game::filterBlockedMoves(std::vector<std::pair<
 }
 
 std::vector<std::pair<int, int>> Game::filterIndividualMoves(std::vector<std::pair<int, int>> zetten, zw kleur) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
+    std::vector<std::pair<int, int>> valid_moves;
     for(std::pair<int, int> currentMove : zetten) {
-        if((hasEnemyPiece(currentMove.first, currentMove.second, kleur)
-        || !hasPiece(currentMove.first, currentMove.second)) && isBinnenGrens(currentMove.first, currentMove.second)) {
-            geldige_zetten.push_back(currentMove);
+        if(isBinnenGrens(currentMove.first, currentMove.second) && !hasFriendlyPiece(currentMove.first, currentMove.second, kleur)) {
+            valid_moves.push_back(currentMove);
         }
     }
-    return geldige_zetten;
+    return valid_moves;
 }
 
 
@@ -207,4 +232,7 @@ std::vector<std::pair<int, int>> Game::concatenateMoves(std::vector<std::vector<
 
 bool Game::validTurn(SchaakStuk *s) const {
     return currentTurn == s->getKleur();
+}
+void Game::nextTurn() {
+    currentTurn = (currentTurn == zwart) ? wit : zwart;
 }

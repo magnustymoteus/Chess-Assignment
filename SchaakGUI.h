@@ -17,6 +17,7 @@ public:
     void update();
 
 private:
+    SchaakStuk *selectedPiece = nullptr;
     Game g;
 
     void clicked(int x, int y) override;
@@ -26,6 +27,8 @@ private:
     void undo() override;
     void redo() override;
     void visualizationChange() override;
+    void selectTiles(std::vector<std::pair<int, int>> tiles);
+    bool isPieceSelected() const;
 
 /*  Overgeerfde functies van ChessWindow:
 

@@ -22,11 +22,13 @@ public:
     void setStartBord();
 
     SchaakStuk * getPiece(int r, int k) const;
+    void printBord() const;
     bool isBinnenGrens(int r, int k) const;
     void setPiece(int r, int k, SchaakStuk* s);
     bool hasPiece(int r, int k) const;
     bool hasFriendlyPiece(int r, int k, zw kleur) const;
     bool hasEnemyPiece(int r, int k, zw kleur) const;
+    void updateAllValidMoves();
     std::vector<std::pair<int, int>> getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const;
     std::vector<std::pair<int, int>> getDiagonalMoves(std::pair<int, int> pos) const;
     std::vector<std::pair<int, int>> getHorizontalMoves(std::pair<int, int> pos) const;
@@ -39,6 +41,7 @@ public:
     std::pair<int, int> getMirrorXY(std::pair<int, int> pos) const;
     bool allTrue(std::vector<bool> bools) const;
     bool validTurn(SchaakStuk *s) const;
+    void nextTurn();
     std::vector<std::pair<int, int>> concatenateMoves(std::vector<std::vector<std::pair<int, int>>> movesMatrix) const;
 
 private:
