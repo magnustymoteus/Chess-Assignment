@@ -30,20 +30,20 @@ public:
     bool hasFriendlyPiece(int r, int k, zw kleur) const;
     bool hasEnemyPiece(int r, int k, zw kleur) const;
     void updateAllValidMoves();
-    std::vector<std::pair<int, int>> getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const;
-    std::vector<std::pair<int, int>> getDiagonalMoves(std::pair<int, int> pos) const;
-    std::vector<std::pair<int, int>> getHorizontalMoves(std::pair<int, int> pos) const;
-    std::vector<std::pair<int ,int>> getVerticalMoves(std::pair<int, int> pos) const;
-    std::vector<std::pair<int, int>> getVerticalAndHorizontalMoves(std::pair<int, int> pos) const;
-    std::vector<std::pair<int, int>> filterBlockedMoves(std::vector<std::pair<int, int>> zetten, int aantalSpiegelZetten, zw kleur) const;
-    std::vector<std::pair<int, int>> filterIndividualMoves(std::vector<std::pair<int, int>> zetten, zw kleur) const;
-    std::pair<int, int> getMirrorX(std::pair<int, int> pos) const;
-    std::pair<int, int> getMirrorY(std::pair<int, int> pos) const;
-    std::pair<int, int> getMirrorXY(std::pair<int, int> pos) const;
-    bool allTrue(std::vector<bool> bools) const;
+    MoveVector getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const;
+    MoveMatrix getDiagonalMoves(std::pair<int, int> pos) const;
+    MoveMatrix getHorizontalMoves(std::pair<int, int> pos) const;
+    std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(std::pair<int, int> pos) const;
+    MoveVector filterBlockedMoves(MoveVector zetten, zw kleur) const;
+    MoveMatrix filterBlockedMovesMatrix(MoveMatrix zetten, zw kleur) const;
+    MoveVector dissolveMatrix(MoveMatrix matrix) const;
+    MoveVector filterIndividualMoves(MoveVector zetten, zw kleur) const;
+   Move getMirrorX(std::pair<int, int> pos) const;
+   Move getMirrorY(std::pair<int, int> pos) const;
+   Move getMirrorXY(std::pair<int, int> pos) const;
     bool validTurn(SchaakStuk *s) const;
     void nextTurn();
-    std::vector<std::pair<int, int>> concatenateMoves(std::vector<std::vector<std::pair<int, int>>> movesMatrix) const;
+    MoveVector concatenateMoves(MoveMatrix movesMatrix) const;
 
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};

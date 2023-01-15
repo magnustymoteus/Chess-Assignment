@@ -36,9 +36,9 @@ bool Pion::zet_geldig(std::pair<int, int> zet, zetType type, Game &game) const {
     }
     return isGeldig;
 }
-std::vector<std::pair<int, int>> Pion::filter_ongeldige_zetten(std::vector<std::pair<int, int>> zetten, zetType type, Game &game) const {
+MoveVector Pion::filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &game) const {
     //de pion is een speciale stuk waardoor hij zijn eigen methoden heeft van geldige zetten.
-    std::vector<std::pair<int, int>> geldige_zetten;
+    MoveVector geldige_zetten;
     //alle zetten moeten van hetzelfde type zijn
     for(auto zet : zetten) {
         if(zet_geldig(zet, type, game) && game.isBinnenGrens(zet.first, zet.second)) geldige_zetten.push_back(zet);
@@ -55,12 +55,12 @@ bool Pion::heeft_bewogen() const {
     }
 }
 
-std::vector<std::pair<int, int>> Pion::geldige_zetten(Game &game) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
-    std::vector<std::pair<int, int>> vangbare_zetten;
+MoveVector Pion::geldige_zetten(Game &game) const {
+    MoveVector geldige_zetten;
+    MoveVector vangbare_zetten;
     int direction = (getKleur() == wit) ? -1 : 1;
-    std::pair<int, int> normaleZet = {getPositie().first+direction,getPositie().second};
-    std::pair<int, int> specialeZet = {getPositie().first+(direction*2), getPositie().second};
+   Move normaleZet = {getPositie().first+direction,getPositie().second};
+   Move specialeZet = {getPositie().first+(direction*2), getPositie().second};
 
     vangbare_zetten.push_back({getPositie().first+direction, getPositie().second+1});
     vangbare_zetten.push_back({getPositie().first+direction, getPositie().second-1});
@@ -71,47 +71,49 @@ std::vector<std::pair<int, int>> Pion::geldige_zetten(Game &game) const {
 
     return geldige_zetten;
 }
-std::vector<std::pair<int, int>> Toren::geldige_zetten(Game &game) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
-    std::vector<std::pair<int, int>> verticale_zetten = game.getVerticalMoves(getPositie());
-    std::vector<std::pair<int, int>> horizontale_zetten = game.getHorizontalMoves(getPositie());
-    verticale_zetten = game.filterBlockedMoves(verticale_zetten, 2, getKleur());
-    horizontale_zetten = game.filterBlockedMoves(horizontale_zetten, 2, getKleur());
-    geldige_zetten = game.concatenateMoves({verticale_zetten, horizontale_zetten});
+MoveVector Toren::geldige_zetten(Game &game) const {
+    MoveVector geldige_zetten;
+    MoveMatrix verticale_zetten = game.getVerticalMoves(getPositie());
+    MoveMatrix horizontale_zetten = game.getHorizontalMoves(getPositie());
+    verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
+    horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
+    geldige_zetten = game.concatenateMoves({verticale_zetten[0], verticale_zetten[1], horizontale_zetten[0], horizontale_zetten[1]});
     return geldige_zetten;
 }
-std::vector<std::pair<int, int>> Loper::geldige_zetten(Game &game) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
-    std::vector<std::pair<int, int>> diagonale_zetten = game.getDiagonalMoves(getPositie());
-    diagonale_zetten = game.filterBlockedMoves(diagonale_zetten, 4, getKleur());
-    geldige_zetten = diagonale_zetten;
+MoveVector Loper::geldige_zetten(Game &game) const {
+    MoveVector geldige_zetten;
+    MoveMatrix diagonale_zetten = game.getDiagonalMoves(getPositie());
+    diagonale_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
+    geldige_zetten = game.dissolveMatrix(diagonale_zetten);
     return geldige_zetten;
 }
-std::vector<std::pair<int, int>> Koningin::geldige_zetten(Game &game) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
-    std::vector<std::pair<int, int>> verticale_zetten = game.getVerticalMoves(getPositie());
-    std::vector<std::pair<int, int>> horizontale_zetten = game.getHorizontalMoves(getPositie());
-    std::vector<std::pair<int, int>> diagonale_zetten = game.getDiagonalMoves(getPositie());
-    verticale_zetten = game.filterBlockedMoves(verticale_zetten, 2, getKleur());
-    horizontale_zetten = game.filterBlockedMoves(horizontale_zetten, 2, getKleur());
-    diagonale_zetten = game.filterBlockedMoves(diagonale_zetten, 4, getKleur());
-    geldige_zetten = game.concatenateMoves({verticale_zetten, horizontale_zetten, diagonale_zetten});
+MoveVector Koningin::geldige_zetten(Game &game) const {
+    MoveVector geldige_zetten;
+    MoveMatrix verticale_zetten = game.getVerticalMoves(getPositie());
+    MoveMatrix horizontale_zetten = game.getHorizontalMoves(getPositie());
+    MoveMatrix diagonale_zetten = game.getDiagonalMoves(getPositie());
+    verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
+    horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
+    diagonale_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
+    geldige_zetten = game.concatenateMoves({game.dissolveMatrix(verticale_zetten),
+                                            game.dissolveMatrix(horizontale_zetten),
+                                            game.dissolveMatrix(diagonale_zetten)});
     return geldige_zetten;
 }
-std::vector<std::pair<int, int>> Koning::geldige_zetten(Game &game) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
-    std::vector<std::pair<int, int>> radius = game.getRadiusMoves(getPositie(), 1);
+MoveVector Koning::geldige_zetten(Game &game) const {
+    MoveVector geldige_zetten;
+    MoveVector radius = game.getRadiusMoves(getPositie(), 1);
     geldige_zetten = game.filterIndividualMoves(radius, getKleur());
     return geldige_zetten;
 }
-std::vector<std::pair<int, int>> Paard::geldige_zetten(Game &game) const {
-    std::vector<std::pair<int, int>> geldige_zetten;
-    std::vector<std::pair<int, int>> moves1 = {{getPositie().first-1, getPositie().second-2},
+MoveVector Paard::geldige_zetten(Game &game) const {
+    MoveVector geldige_zetten;
+    MoveVector moves1 = {{getPositie().first-1, getPositie().second-2},
                                                {getPositie().first-1, getPositie().second+2},
                                                {getPositie().first+1, getPositie().second-2},
                                                {getPositie().first+1, getPositie().second+2}
     };
-    std::vector<std::pair<int, int>> moves2 = {{getPositie().first-2, getPositie().second-1},
+    MoveVector moves2 = {{getPositie().first-2, getPositie().second-1},
                                                {getPositie().first-2, getPositie().second+1},
                                                {getPositie().first+2, getPositie().second-1},
                                                {getPositie().first+2, getPositie().second+1},

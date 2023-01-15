@@ -12,11 +12,15 @@ class Game;
 enum zw{zwart,wit};
 enum zetType{normaal, vangbaar, speciaal};
 
+typedef std::pair<int, int> Move;
+typedef std::vector<Move> MoveVector;
+typedef std::vector<MoveVector> MoveMatrix;
+
 class SchaakStuk {
 public:
     SchaakStuk(zw kleur): kleur(kleur) {}
 
-    virtual std::vector<std::pair<int, int>> geldige_zetten(Game &game) const = 0;
+    virtual MoveVector geldige_zetten(Game &game) const = 0;
     bool isZetGeldig(int r, int k) const;
     virtual Piece piece() const=0;      // Verander deze functie niet!
                                         // Deze functie wordt gebruikt door
@@ -25,14 +29,14 @@ public:
 
     zw getKleur() const { return kleur; }
 
-    std::pair<int, int> getPositie() const { return positie; }
+    Move getPositie() const { return positie; }
     void setPositie(std::pair<int, int> newPositie, Game &game);
-    std::vector<std::pair<int, int>> getValidMoves() const {return validMoves;}
+    MoveVector getValidMoves() const {return validMoves;}
     void updateValidMoves(Game &game);
 private:
     zw kleur;
-    std::pair<int, int> positie;
-    std::vector<std::pair<int, int>> validMoves;
+   Move positie;
+    MoveVector validMoves;
 };
 
 class Pion:public SchaakStuk {
@@ -42,15 +46,15 @@ public:
         return Piece(Piece::Pawn,getKleur()==wit?Piece::White:Piece::Black);
     }
     bool zet_geldig(std::pair<int, int> zet,  zetType type, Game &game) const;
-    std::vector<std::pair<int, int>> filter_ongeldige_zetten(std::vector<std::pair<int, int>> zetten, zetType type, Game &game) const;
-    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
+    MoveVector filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &game) const;
+    MoveVector geldige_zetten(Game &game) const;
     bool heeft_bewogen() const;
 };
 
 class Toren:public SchaakStuk {
 public:
     Toren(zw kleur):SchaakStuk(kleur) {}
-    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
+    MoveVector geldige_zetten(Game &game) const;
     Piece piece() const override {
         return Piece(Piece::Rook,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -59,7 +63,7 @@ public:
 class Paard:public SchaakStuk {
 public:
     Paard(zw kleur):SchaakStuk(kleur) {}
-    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
+    MoveVector geldige_zetten(Game &game) const;
     Piece piece() const override {
         return Piece(Piece::Knight,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -68,7 +72,7 @@ public:
 class Loper:public SchaakStuk {
 public:
     Loper(zw kleur):SchaakStuk(kleur) {}
-    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
+    MoveVector geldige_zetten(Game &game) const;
     Piece piece() const override {
         return Piece(Piece::Bishop,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -77,7 +81,7 @@ public:
 class Koning:public SchaakStuk {
 public:
     Koning(zw kleur):SchaakStuk(kleur) {}
-    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
+    MoveVector geldige_zetten(Game &game) const;
     Piece piece() const override {
         return Piece(Piece::King,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -86,7 +90,7 @@ public:
 class Koningin:public SchaakStuk {
 public:
     Koningin(zw kleur):SchaakStuk(kleur) {}
-    std::vector<std::pair<int, int>> geldige_zetten(Game &game) const;
+    MoveVector geldige_zetten(Game &game) const;
     Piece piece() const override {
         return Piece(Piece::Queen,getKleur()==wit?Piece::White:Piece::Black);
     }
