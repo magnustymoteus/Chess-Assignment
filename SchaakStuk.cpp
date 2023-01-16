@@ -40,7 +40,7 @@ MoveVector Pion::filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &
     //de pion is een speciale stuk waardoor hij zijn eigen methoden heeft van geldige zetten.
     MoveVector geldige_zetten;
     //alle zetten moeten van hetzelfde type zijn
-    for(auto zet : zetten) {
+    for(Move zet : zetten) {
         if(zet_geldig(zet, type, game) && game.isBinnenGrens(zet.first, zet.second)) geldige_zetten.push_back(zet);
     }
     return geldige_zetten;
@@ -72,12 +72,12 @@ MoveVector Pion::geldige_zetten(Game &game) const {
     return geldige_zetten;
 }
 MoveVector Toren::geldige_zetten(Game &game) const {
-    MoveVector geldige_zetten;
-    MoveMatrix verticale_zetten = game.getVerticalMoves(getPositie());
-    MoveMatrix horizontale_zetten = game.getHorizontalMoves(getPositie());
-    verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
-    horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
-    geldige_zetten = game.concatenateMoves({verticale_zetten[0], verticale_zetten[1], horizontale_zetten[0], horizontale_zetten[1]});
+    MoveVector geldige_zetten, verticale_zetten, horizontale_zetten;
+    MoveMatrix verticale_zetten_matrix = game.getVerticalMoves(getPositie());
+    MoveMatrix horizontale_zetten_matrix = game.getHorizontalMoves(getPositie());
+    verticale_zetten = game.dissolveMatrix(game.filterBlockedMovesMatrix(verticale_zetten_matrix, getKleur()));
+    horizontale_zetten = game.dissolveMatrix(game.filterBlockedMovesMatrix(horizontale_zetten_matrix, getKleur()));
+    geldige_zetten = game.concatenateMoves({verticale_zetten, horizontale_zetten});
     return geldige_zetten;
 }
 MoveVector Loper::geldige_zetten(Game &game) const {

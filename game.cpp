@@ -133,7 +133,7 @@ MoveMatrix Game::getDiagonalMoves(std::pair<int, int> pos) const {
     MoveVector topLeft, topRight, downLeft, downRight;
     int i = 1;
     while(i < 8) {
-        topLeft.push_back({current.first-i, current.first-i});
+        topLeft.push_back({current.first-i, current.second-i});
         topRight.push_back({current.first-i, current.second+i});
         downLeft.push_back({current.first+i, current.second-i});
         downRight.push_back({current.first+i, current.second+i});
@@ -142,23 +142,23 @@ MoveMatrix Game::getDiagonalMoves(std::pair<int, int> pos) const {
     return {topLeft, topRight, downLeft, downRight};
 }
 MoveMatrix Game::getHorizontalMoves(std::pair<int, int> pos) const {
-    int currR = pos.first, currK = pos.second+1;
+    int currR = pos.first, currK = pos.second;
     MoveVector movesLeft, movesRight;
-    int i=0;
+    int i = 1;
     while(i < 8) {
         if(currK+i < 8) movesRight.push_back({currR, currK+i});
-        if(currK-i >= 0) movesLeft.push_back(getMirrorY({currR, currK-i}));
+        if(currK-i >= 0) movesLeft.push_back({currR, currK-i});
         i++;
     }
     return {movesLeft, movesRight};
 }
 std::vector<std::vector<std::pair<int ,int>>> Game::getVerticalMoves(std::pair<int, int> pos) const {
-    int currR = pos.first+1, currK = pos.second;
+    int currR = pos.first, currK = pos.second;
     MoveVector movesUp, movesDown;
-    int i = 0;
+    int i = 1;
     while(i < 8) {
         if(currR+i < 8) movesDown.push_back({currR+i, currK});
-        if(currR-i >= 0) movesUp.push_back(getMirrorX({currR-i, currK}));
+        if(currR-i >= 0) movesUp.push_back({currR-i, currK});
         i++;
     }
     return {movesUp, movesDown};
@@ -176,8 +176,6 @@ MoveVector Game::getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const
     return {7-pos.first, pos.second};
 }Move Game::getMirrorY(std::pair<int, int> pos) const {
     return {pos.first, 7-pos.second};
-}Move Game::getMirrorXY(std::pair<int, int> pos) const {
-    return getMirrorX(getMirrorY(pos));
 }
 MoveVector Game::filterBlockedMoves(MoveVector zetten, zw kleur) const {
     MoveVector geldige_zetten;
@@ -193,8 +191,7 @@ MoveVector Game::filterBlockedMoves(MoveVector zetten, zw kleur) const {
     }
     return geldige_zetten;
 }
-MoveMatrix Game::filterBlockedMovesMatrix(
-        MoveMatrix zetten, zw kleur) const {
+MoveMatrix Game::filterBlockedMovesMatrix(MoveMatrix zetten, zw kleur) const {
     MoveMatrix geldige_zetten_matrix;
     for(MoveVector currentMovesArr : zetten) {
         geldige_zetten_matrix.push_back(filterBlockedMoves(currentMovesArr, kleur));

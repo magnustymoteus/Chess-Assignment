@@ -40,7 +40,6 @@ public:
     MoveVector filterIndividualMoves(MoveVector zetten, zw kleur) const;
    Move getMirrorX(std::pair<int, int> pos) const;
    Move getMirrorY(std::pair<int, int> pos) const;
-   Move getMirrorXY(std::pair<int, int> pos) const;
     bool validTurn(SchaakStuk *s) const;
     void nextTurn();
     MoveVector concatenateMoves(MoveMatrix movesMatrix) const;

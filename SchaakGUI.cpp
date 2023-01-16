@@ -32,6 +32,7 @@ void SchaakGUI::clicked(int r, int k) {
         if(selectedPiece->isZetGeldig(r, k)) {
             g.setPiece(r, k, selectedPiece, true);
             g.nextTurn();
+            g.updateAllValidMoves();
             update();
         }
         else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
@@ -124,7 +125,6 @@ void SchaakGUI::update() {
             }
         }
     }
-    g.updateAllValidMoves();
 }
 
 /*// Wat hier staat is slechts een voorbeeldje dat wordt afgespeeld ter illustratie.
