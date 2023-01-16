@@ -40,12 +40,15 @@ public:
     MoveVector filterIndividualMoves(MoveVector zetten, zw kleur) const;
    Move getMirrorX(std::pair<int, int> pos) const;
    Move getMirrorY(std::pair<int, int> pos) const;
+   bool hasMove(int r, int k, MoveVector moves) const;
     bool validTurn(SchaakStuk *s) const;
     void nextTurn();
+    zw getCurrentTurn() const {return currentTurn;}
     MoveVector concatenateMoves(MoveMatrix movesMatrix) const;
 
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};
+    std::array<SchaakStuk*, 2> koningen {nullptr};
     zw currentTurn;
     // Hier zet jij jouw datastructuur neer om het bord te bewaren ...
 };

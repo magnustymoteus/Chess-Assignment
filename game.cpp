@@ -33,10 +33,13 @@ void Game::updateAllValidMoves() {
 }
 // Zet het bord klaar; voeg de stukken op de jusite plaats toe
 void Game::setStartBord() {
+    SchaakStuk *koning_zwart = new Koning(zwart), *koning_wit = new Koning(wit);
+    setPiece(0, 4, koning_zwart);
+    setPiece(7, 4, koning_wit);
+    koningen[0] = koning_wit, koningen[1] = koning_zwart;
+
     setPiece(0, 3, new Koningin(zwart));
     setPiece(7, 3, new Koningin(wit));
-    setPiece(0, 4, new Koning(zwart));
-    setPiece(7, 4, new Koning(wit));
     for(int i=0;i<8;i++) {
         setPiece(1, i, new Pion(zwart));
         setPiece(6, i, new Pion(wit));
@@ -70,6 +73,13 @@ bool Game::move(SchaakStuk* s, int r, int k) {
 
 // Geeft true als kleur schaak staat
 bool Game::schaak(zw kleur) {
+    Move koningPos = koningen[kleur == zwart]->getPositie();
+    for(std::array<SchaakStuk*, 8> currentRow: schaakBord) {
+        for(SchaakStuk* currentPiece : currentRow) {
+            if(currentPiece != nullptr && currentPiece->getKleur() != kleur &&
+               hasMove(koningPos.first, koningPos.second,currentPiece->getValidMoves())) return true;
+        }
+    }
     return false;
 }
 
@@ -224,6 +234,12 @@ MoveVector Game::dissolveMatrix(MoveMatrix matrix) const {
 }
 bool Game::validTurn(SchaakStuk *s) const {
     return currentTurn == s->getKleur();
+}
+bool Game::hasMove(int r, int k, MoveVector moves) const {
+    for(Move currentMove : moves) {
+        if(currentMove.first == r && currentMove.second == k) return true;
+    }
+    return false;
 }
 void Game::nextTurn() {
     currentTurn = (currentTurn == zwart) ? wit : zwart;

@@ -31,8 +31,9 @@ void SchaakGUI::clicked(int r, int k) {
     else {
         if(selectedPiece->isZetGeldig(r, k)) {
             g.setPiece(r, k, selectedPiece, true);
-            g.nextTurn();
             g.updateAllValidMoves();
+            g.nextTurn();
+            std::cout << g.schaak(g.getCurrentTurn()) << std::endl;
             update();
         }
         else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
