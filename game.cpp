@@ -48,17 +48,33 @@ void Game::printBord() const {
     }
     std::cout << std::endl;
 }
+void Game::updateMoveThreats() {
+    for(SchaakStuk *currentPiece : stukken) {
+        currentPiece->setThreatenedMoves(*this);
+    }
+}
 void Game::updateAllPieces(bool filterCheckMoves) {
     for(SchaakStuk *currentPiece : stukken) {
         currentPiece->setCanBeTaken(false);
         currentPiece->updateValidMoves(*this, filterCheckMoves);
     }
+    updateMoveThreats();
     for(SchaakStuk *currentPiece : stukken) {
         for(Move currentMove : currentPiece->getValidMoves()) {
             if(hasEnemyPiece(currentMove.first, currentMove.second, currentPiece->getKleur()))
                 getPiece(currentMove.first, currentMove.second)->setCanBeTaken(true);
         }
     }
+}
+MoveVector Game::getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const {
+    MoveVector intersection;
+    for(Move currentMove1 : zetten1) {
+        for(Move currentMove2 : zetten2) {
+            if(currentMove1.first == currentMove2.first && currentMove1.second == currentMove2.second)
+                intersection.push_back(currentMove1);
+        }
+    }
+    return intersection;
 }
 void Game::setStukkenVector() {
     for(int i=0;i<8;i++) {

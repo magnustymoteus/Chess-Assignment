@@ -30,6 +30,7 @@ private:
     void selectTiles(MoveVector tiles);
     bool isPieceSelected() const;
     void displayThreatenedPieces();
+    void displayThreatenedMoves(MoveVector tiles);
 
 /*  Overgeerfde functies van ChessWindow:
 

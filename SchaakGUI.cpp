@@ -25,6 +25,7 @@ void SchaakGUI::clicked(int r, int k) {
                 selectedPiece = clickedPiece;
                 setTileSelect(r, k, true);
                 if(displayMoves()) selectTiles(clickedPiece->getValidMoves());
+                if(displayMoves()) displayThreatenedMoves(clickedPiece->getThreatenedMoves());
             }
         }
     }
@@ -64,6 +65,12 @@ bool SchaakGUI::isPieceSelected() const {
 void SchaakGUI::selectTiles(MoveVector tiles) {
     for(Move currentMove : tiles) {
         setTileFocus(currentMove.first, currentMove.second, true);
+    }
+}
+
+void SchaakGUI::displayThreatenedMoves(MoveVector tiles) {
+    for(Move currentMove : tiles) {
+        setTileThreat(currentMove.first, currentMove.second, true);
     }
 }
 

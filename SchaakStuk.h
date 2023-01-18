@@ -38,14 +38,19 @@ public:
     void setCanBeTaken(bool canBeTakenArg) {canBeTaken = canBeTakenArg;}
     bool getCanBeTaken() const {return canBeTaken;}
     void setValidMoves(MoveVector zetten) {validMoves=zetten;}
+    MoveVector getThreatenedMoves() const {return threatenedMoves;}
+    virtual MoveVector getTakeableMoves() const {return validMoves;}
+    void setThreatenedMoves(Game &game);
 private:
     zw kleur;
    Move positie;
     MoveVector validMoves;
     bool canBeTaken;
+    MoveVector threatenedMoves;
 };
 
 class Pion:public SchaakStuk {
+private:
 public:
     Pion(zw kleur):SchaakStuk(kleur) {}
     SchaakStuk* Clone();
@@ -56,6 +61,7 @@ public:
     MoveVector filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &game) const;
     MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     bool heeft_bewogen() const;
+    MoveVector getTakeableMoves() const;
 };
 
 class Toren:public SchaakStuk {

@@ -61,6 +61,16 @@ bool SchaakStuk::isZetGeldig(int r, int k) const {
     }
     return false;
 }
+void SchaakStuk::setThreatenedMoves(Game &game) {
+    threatenedMoves.clear();
+        for(SchaakStuk* currentPiece : game.getStukken()) {
+            if(currentPiece->getKleur() != getKleur()) {
+                MoveVector intersection =
+                        game.getMoveIntersection(getValidMoves(), currentPiece->getTakeableMoves());
+                threatenedMoves.insert(threatenedMoves.end(), intersection.begin(), intersection.end());
+            }
+        }
+}
 bool Pion::zet_geldig(std::pair<int, int> zet, zetType type, Game &game) const {
     int r = zet.first, k = zet.second;
     if(!game.isBinnenGrens(r,k)) return false;
@@ -78,6 +88,13 @@ bool Pion::zet_geldig(std::pair<int, int> zet, zetType type, Game &game) const {
     }
     return isGeldig;
 }
+MoveVector Pion::getTakeableMoves() const {
+    MoveVector vangbare_zetten;
+    int direction = (getKleur() == wit) ? -1 : 1;
+    vangbare_zetten.push_back({getPositie().first+direction, getPositie().second+1});
+    vangbare_zetten.push_back({getPositie().first+direction, getPositie().second-1});
+    return vangbare_zetten;
+}
 MoveVector Pion::filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &game) const {
     //de pion is een speciale stuk waardoor hij zijn eigen methoden heeft van geldige zetten.
     MoveVector geldige_zetten;
@@ -87,7 +104,6 @@ MoveVector Pion::filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &
     }
     return geldige_zetten;
 }
-
 bool Pion::heeft_bewogen() const {
     switch(getKleur()) {
         case wit:

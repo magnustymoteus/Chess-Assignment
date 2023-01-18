@@ -34,6 +34,7 @@ public:
     bool hasFriendlyPiece(int r, int k, zw kleur) const;
     bool hasEnemyPiece(int r, int k, zw kleur) const;
     void updateAllPieces(bool filterCheckMoves=true);
+    void updateMoveThreats();
     MoveVector getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const;
     MoveMatrix getDiagonalMoves(std::pair<int, int> pos) const;
     MoveMatrix getHorizontalMoves(std::pair<int, int> pos) const;
@@ -53,7 +54,7 @@ public:
     void setCurrentTurn(zw newTurn) {currentTurn=newTurn;}
     void pushToStukken(SchaakStuk* stuk) {stukken.push_back(stuk);}
     void setSchaakBord(int r, int k, SchaakStuk* stuk) {schaakBord[r][k] = stuk;}
-
+    MoveVector getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const;
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};
     std::array<SchaakStuk*, 2> koningen {nullptr};
