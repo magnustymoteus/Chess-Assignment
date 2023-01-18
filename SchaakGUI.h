@@ -27,8 +27,9 @@ private:
     void undo() override;
     void redo() override;
     void visualizationChange() override;
-    void selectTiles(std::vector<std::pair<int, int>> tiles);
+    void selectTiles(MoveVector tiles);
     bool isPieceSelected() const;
+    void displayThreatenedPieces();
 
 /*  Overgeerfde functies van ChessWindow:
 

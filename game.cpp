@@ -11,7 +11,31 @@ Game::Game() {
     setStartBord();
     currentTurn = wit;
 }
-
+Game Game::Clone() const {
+    Game newGame = Game(currentTurn);
+    newGame.setCurrentTurn(currentTurn);
+    newGame.setKoningen(koningen);
+    SchaakStuk* koning_wit = koningen[0]->Clone();
+    SchaakStuk* koning_zwart = koningen[1]->Clone();
+    newGame.setKoningen({koning_wit, koning_zwart});
+    for(SchaakStuk* currentPiece : getStukken()) {
+        int i = currentPiece->getPositie().first, j = currentPiece->getPositie().second;
+        if(i == koningen[0]->getPositie().first && j == koningen[0]->getPositie().second) {
+            newGame.pushToStukken(koning_wit);
+            newGame.setSchaakBord(i, j, koning_wit);
+        }
+        else if(i == koningen[1]->getPositie().first && j == koningen[1]->getPositie().second) {
+            newGame.pushToStukken(koning_zwart);
+            newGame.setSchaakBord(i, j, koning_zwart);
+        }
+        else {
+            SchaakStuk *sCopy = currentPiece->Clone();
+            newGame.pushToStukken(sCopy);
+            newGame.setSchaakBord(i, j, sCopy);
+        }
+    }
+    return newGame;
+}
 Game::~Game() {}
 
 void Game::printBord() const {
@@ -24,10 +48,22 @@ void Game::printBord() const {
     }
     std::cout << std::endl;
 }
-void Game::updateAllValidMoves() {
-    for(int i=0;i<schaakBord.size();i++) {
-        for(int j=0;j<schaakBord[i].size();j++) {
-            if(schaakBord[i][j] != nullptr) schaakBord[i][j]->updateValidMoves(*this);
+void Game::updateAllPieces(bool filterCheckMoves) {
+    for(SchaakStuk *currentPiece : stukken) {
+        currentPiece->setCanBeTaken(false);
+        currentPiece->updateValidMoves(*this, filterCheckMoves);
+    }
+    for(SchaakStuk *currentPiece : stukken) {
+        for(Move currentMove : currentPiece->getValidMoves()) {
+            if(hasEnemyPiece(currentMove.first, currentMove.second, currentPiece->getKleur()))
+                getPiece(currentMove.first, currentMove.second)->setCanBeTaken(true);
+        }
+    }
+}
+void Game::setStukkenVector() {
+    for(int i=0;i<8;i++) {
+        for(int j=0;j<8;j++) {
+            if(hasPiece(i, j)) stukken.push_back(getPiece(i, j));
         }
     }
 }
@@ -56,7 +92,8 @@ void Game::setStartBord() {
             setPiece(7, 7-i, new Loper(wit)), setPiece(0,7-i,new Loper(zwart));
         }
     }
-    updateAllValidMoves();
+    setStukkenVector();
+    updateAllPieces();
 }
 
 // Verplaats stuk s naar positie (r,k)
@@ -65,7 +102,7 @@ void Game::setStartBord() {
 // Anders wordt de move uitgevoerd en wordt true teruggegeven
 bool Game::move(SchaakStuk* s, int r, int k) {
     if(s->isZetGeldig(r, k)) {
-        setPiece(r,k,s);
+        setPiece(r,k,s, true);
         return true;
     }
     return false;
@@ -74,25 +111,31 @@ bool Game::move(SchaakStuk* s, int r, int k) {
 // Geeft true als kleur schaak staat
 bool Game::schaak(zw kleur) {
     Move koningPos = koningen[kleur == zwart]->getPositie();
-    for(std::array<SchaakStuk*, 8> currentRow: schaakBord) {
-        for(SchaakStuk* currentPiece : currentRow) {
-            if(currentPiece != nullptr && currentPiece->getKleur() != kleur &&
+        for(SchaakStuk* currentPiece : stukken) {
+            if(currentPiece->getKleur() != kleur &&
                hasMove(koningPos.first, koningPos.second,currentPiece->getValidMoves())) return true;
         }
-    }
     return false;
 }
 
 // Geeft true als kleur schaakmat staat
 bool Game::schaakmat(zw kleur) {
-    return false;
+    bool isSchaak = schaak(kleur);
+    for(SchaakStuk* currentPiece : stukken) {
+        if(currentPiece->getKleur() == kleur && !currentPiece->getValidMoves().empty()) return false;
+    }
+    return isSchaak;
 }
 
 // Geeft true als kleur pat staat
 // (pat = geen geldige zet mogelijk, maar kleur staat niet schaak;
 // dit resulteert in een gelijkspel)
 bool Game::pat(zw kleur) {
-    return false;
+    bool isSchaak = schaak(kleur);
+    for(SchaakStuk* currentPiece : stukken) {
+        if(currentPiece->getKleur() == kleur && !currentPiece->getValidMoves().empty()) return false;
+    }
+    return !isSchaak;
 }
 
 // Geeft een pointer naar het schaakstuk dat op rij r, kolom k staat
@@ -108,9 +151,13 @@ SchaakStuk * Game::getPiece(int r, int k) const {
 void Game::setPiece(int r, int k, SchaakStuk* s, bool deletePreviousPos)
 {
     if(isBinnenGrens(r, k) && s != nullptr) {
+        if(schaakBord[r][k] != nullptr) {
+        for(auto iter = stukken.begin();iter!=stukken.end();iter++) {
+            if(((*iter)->getPositie().first == r) && ((*iter)->getPositie().second == k)) stukken.erase(iter);
+        }}
         if(deletePreviousPos) removePiece(s->getPositie().first, s->getPositie().second);
         schaakBord[r][k] = s;
-        s->setPositie({r, k}, *this);
+        s->setPositie({r, k});
     }
    else if(!isBinnenGrens(r, k)) throw std::invalid_argument("not inside chess boundary");
    else if(s == nullptr) throw std::invalid_argument("chess piece is a null pointer");
@@ -182,10 +229,6 @@ MoveVector Game::getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const
         }
     }
     return moves;
-}Move Game::getMirrorX(std::pair<int, int> pos) const {
-    return {7-pos.first, pos.second};
-}Move Game::getMirrorY(std::pair<int, int> pos) const {
-    return {pos.first, 7-pos.second};
 }
 MoveVector Game::filterBlockedMoves(MoveVector zetten, zw kleur) const {
     MoveVector geldige_zetten;
@@ -216,6 +259,18 @@ MoveVector Game::filterIndividualMoves(MoveVector zetten, zw kleur) const {
         }
     }
     return valid_moves;
+}
+
+MoveVector Game::filterSelfCheckMoves(MoveVector zetten, Move position) const {
+    MoveVector geldige_zetten;
+    for(Move currentMove : zetten) {
+        Game gameCpy = Clone();
+        SchaakStuk* sCpy = gameCpy.getPiece(position.first, position.second);
+        gameCpy.setPiece(currentMove.first, currentMove.second, sCpy, true);
+        gameCpy.updateAllPieces(false);
+        if(!gameCpy.schaak(sCpy->getKleur())) geldige_zetten.push_back(currentMove);
+    }
+    return geldige_zetten;
 }
 
 MoveVector Game::concatenateMoves(MoveMatrix movesMatrix) const {

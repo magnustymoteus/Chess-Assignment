@@ -23,24 +23,35 @@ void SchaakGUI::clicked(int r, int k) {
             SchaakStuk *clickedPiece = g.getPiece(r, k);
             if (g.validTurn(clickedPiece)) {
                 selectedPiece = clickedPiece;
-                setTileFocus(r, k, true);
-                selectTiles(clickedPiece->getValidMoves());
+                setTileSelect(r, k, true);
+                if(displayMoves()) selectTiles(clickedPiece->getValidMoves());
             }
         }
     }
     else {
         if(selectedPiece->isZetGeldig(r, k)) {
             g.setPiece(r, k, selectedPiece, true);
-            g.updateAllValidMoves();
+            g.updateAllPieces();
             g.nextTurn();
-            std::cout << g.schaak(g.getCurrentTurn()) << std::endl;
             update();
+            bool isSchaakMat = g.schaakmat(g.getCurrentTurn());
+            bool isPat = g.pat(g.getCurrentTurn());
+            if(isSchaakMat) {
+                QString schaakStr = "schaakmaat, ";
+                schaakStr.append(((g.getCurrentTurn() == wit) ? "zwart" : "wit"));
+                schaakStr.append(" heeft gewonnnen.");
+                message(schaakStr);
+            }
+            else if(isPat) {
+                message("Het is pat. Niemand heeft gewonnen.");
+            }
         }
         else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
             message("Deze zet is ongeldig.");
         }
         selectedPiece = nullptr;
     }
+    displayThreatenedPieces();
 }
 
 void SchaakGUI::newGame()
@@ -50,9 +61,9 @@ bool SchaakGUI::isPieceSelected() const {
     return selectedPiece != nullptr;
 }
 
-void SchaakGUI::selectTiles(std::vector<std::pair<int, int>> tiles) {
-    for(std::pair<int, int> currentMove : tiles) {
-        setTileSelect(currentMove.first, currentMove.second, true);
+void SchaakGUI::selectTiles(MoveVector tiles) {
+    for(Move currentMove : tiles) {
+        setTileFocus(currentMove.first, currentMove.second, true);
     }
 }
 
@@ -114,17 +125,20 @@ void SchaakGUI::visualizationChange() {
     message(QString("Visualization changed : ")+visstring);
 }
 
+void SchaakGUI::displayThreatenedPieces() {
+    for(SchaakStuk* currentPiece : g.getStukken()) {
+        if(currentPiece->getCanBeTaken())
+            setPieceThreat(currentPiece->getPositie().first, currentPiece->getPositie().second, true);
+    }
+}
 
 // Update de inhoud van de grafische weergave van het schaakbord (scene)
 // en maak het consistent met de game state in variabele g.
 void SchaakGUI::update() {
     clearBoard();
-    for(int i=0;i<8;i++) {
-        for(int j=0;j<8;j++) {
-            if(g.hasPiece(i, j)) {
-                setItem(i, j, g.getPiece(i, j));
-            }
-        }
+    for(SchaakStuk* currentPiece : g.getStukken()) {
+        int i = currentPiece->getPositie().first, j = currentPiece->getPositie().second;
+        setItem(i, j, currentPiece);
     }
 }
 

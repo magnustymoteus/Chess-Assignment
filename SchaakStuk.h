@@ -20,7 +20,9 @@ class SchaakStuk {
 public:
     SchaakStuk(zw kleur): kleur(kleur) {}
 
-    virtual MoveVector geldige_zetten(Game &game) const = 0;
+    virtual SchaakStuk* Clone() = 0;
+
+    virtual MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const = 0;
     bool isZetGeldig(int r, int k) const;
     virtual Piece piece() const=0;      // Verander deze functie niet!
                                         // Deze functie wordt gebruikt door
@@ -30,31 +32,37 @@ public:
     zw getKleur() const { return kleur; }
 
     Move getPositie() const { return positie; }
-    void setPositie(std::pair<int, int> newPositie, Game &game);
+    void setPositie(std::pair<int, int> newPositie);
     MoveVector getValidMoves() const {return validMoves;}
-    void updateValidMoves(Game &game);
+    void updateValidMoves(Game &game, bool filterCheckMoves=true);
+    void setCanBeTaken(bool canBeTakenArg) {canBeTaken = canBeTakenArg;}
+    bool getCanBeTaken() const {return canBeTaken;}
+    void setValidMoves(MoveVector zetten) {validMoves=zetten;}
 private:
     zw kleur;
    Move positie;
     MoveVector validMoves;
+    bool canBeTaken;
 };
 
 class Pion:public SchaakStuk {
 public:
     Pion(zw kleur):SchaakStuk(kleur) {}
+    SchaakStuk* Clone();
     virtual Piece piece() const override {
         return Piece(Piece::Pawn,getKleur()==wit?Piece::White:Piece::Black);
     }
     bool zet_geldig(std::pair<int, int> zet,  zetType type, Game &game) const;
     MoveVector filter_ongeldige_zetten(MoveVector zetten, zetType type, Game &game) const;
-    MoveVector geldige_zetten(Game &game) const;
+    MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     bool heeft_bewogen() const;
 };
 
 class Toren:public SchaakStuk {
 public:
     Toren(zw kleur):SchaakStuk(kleur) {}
-    MoveVector geldige_zetten(Game &game) const;
+    SchaakStuk* Clone();
+    MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     Piece piece() const override {
         return Piece(Piece::Rook,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -63,7 +71,8 @@ public:
 class Paard:public SchaakStuk {
 public:
     Paard(zw kleur):SchaakStuk(kleur) {}
-    MoveVector geldige_zetten(Game &game) const;
+    SchaakStuk* Clone();
+    MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     Piece piece() const override {
         return Piece(Piece::Knight,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -72,7 +81,8 @@ public:
 class Loper:public SchaakStuk {
 public:
     Loper(zw kleur):SchaakStuk(kleur) {}
-    MoveVector geldige_zetten(Game &game) const;
+    SchaakStuk* Clone();
+    MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     Piece piece() const override {
         return Piece(Piece::Bishop,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -81,7 +91,8 @@ public:
 class Koning:public SchaakStuk {
 public:
     Koning(zw kleur):SchaakStuk(kleur) {}
-    MoveVector geldige_zetten(Game &game) const;
+    SchaakStuk* Clone();
+    MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     Piece piece() const override {
         return Piece(Piece::King,getKleur()==wit?Piece::White:Piece::Black);
     }
@@ -90,7 +101,8 @@ public:
 class Koningin:public SchaakStuk {
 public:
     Koningin(zw kleur):SchaakStuk(kleur) {}
-    MoveVector geldige_zetten(Game &game) const;
+    SchaakStuk* Clone();
+    MoveVector geldige_zetten(Game &game, bool filterCheckMoves=true) const;
     Piece piece() const override {
         return Piece(Piece::Queen,getKleur()==wit?Piece::White:Piece::Black);
     }
