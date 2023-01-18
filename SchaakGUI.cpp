@@ -24,8 +24,8 @@ void SchaakGUI::clicked(int r, int k) {
             if (g.validTurn(clickedPiece)) {
                 selectedPiece = clickedPiece;
                 setTileSelect(r, k, true);
-                if(displayMoves()) selectTiles(clickedPiece->getValidMoves());
-                if(displayMoves()) displayThreatenedMoves(clickedPiece->getThreatenedMoves());
+                selectTiles(clickedPiece->getValidMoves());
+                displayThreatenedMoves(clickedPiece->getThreatenedMoves());
             }
         }
     }
@@ -63,15 +63,15 @@ bool SchaakGUI::isPieceSelected() const {
 }
 
 void SchaakGUI::selectTiles(MoveVector tiles) {
-    for(Move currentMove : tiles) {
-        setTileFocus(currentMove.first, currentMove.second, true);
-    }
+        for(Move currentMove : tiles) {
+            setTileFocus(currentMove.first, currentMove.second, displayMoves());
+        }
 }
 
 void SchaakGUI::displayThreatenedMoves(MoveVector tiles) {
-    for(Move currentMove : tiles) {
-        setTileThreat(currentMove.first, currentMove.second, true);
-    }
+        for (Move currentMove: tiles) {
+            setTileThreat(currentMove.first, currentMove.second, displayMoves());
+        }
 }
 
 void SchaakGUI::save() {
@@ -130,12 +130,25 @@ void SchaakGUI::redo() {}
 void SchaakGUI::visualizationChange() {
     QString visstring = QString(displayMoves()?"T":"F")+(displayKills()?"T":"F")+(displayThreats()?"T":"F");
     message(QString("Visualization changed : ")+visstring);
+    updateVisualization();
+}
+
+void SchaakGUI::updateVisualization() {
+    displayThreatenedPieces();
+    if(selectedPiece != nullptr) {
+        selectTiles(selectedPiece->getValidMoves());
+        displayThreatenedMoves(selectedPiece->getThreatenedMoves());
+    }
 }
 
 void SchaakGUI::displayThreatenedPieces() {
     for(SchaakStuk* currentPiece : g.getStukken()) {
-        if(currentPiece->getCanBeTaken())
-            setPieceThreat(currentPiece->getPositie().first, currentPiece->getPositie().second, true);
+            if (currentPiece->getCanBeTaken()) {
+                bool factor;
+                factor = (currentPiece->getKleur() == g.getCurrentTurn()) ? displayThreats() : displayKills();
+                setPieceThreat(currentPiece->getPositie().first, currentPiece->getPositie().second, factor);
+            }
+
     }
 }
 
