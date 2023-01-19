@@ -16,7 +16,7 @@ public:
     Game Clone() const; //copy constructor
     ~Game();
 
-    bool move(SchaakStuk* s,int r, int k); // Verplaats stuk s naar rij r en kolom k
+    bool move(SchaakStuk* s, int r, int k); // Verplaats stuk s naar rij r en kolom k
 
     bool schaak(zw kleur);
     bool schaakmat(zw kleur);
@@ -48,7 +48,6 @@ public:
     bool validTurn(SchaakStuk *s) const;
     void nextTurn();
     zw getCurrentTurn() const {return currentTurn;}
-    MoveVector concatenateMoves(MoveMatrix movesMatrix) const;
     std::array<SchaakStuk*, 2> getKoningen() {return koningen;}
     void setKoningen(std::array<SchaakStuk*, 2> newKoningen) {koningen=newKoningen;}
     void setCurrentTurn(zw newTurn) {currentTurn=newTurn;}

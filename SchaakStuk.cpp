@@ -135,7 +135,7 @@ MoveVector Toren::geldige_zetten(Game &game, bool filterCheckMoves) const {
     MoveMatrix horizontale_zetten_matrix = game.getHorizontalMoves(getPositie());
     verticale_zetten = game.dissolveMatrix(game.filterBlockedMovesMatrix(verticale_zetten_matrix, getKleur()));
     horizontale_zetten = game.dissolveMatrix(game.filterBlockedMovesMatrix(horizontale_zetten_matrix, getKleur()));
-    geldige_zetten = game.concatenateMoves({verticale_zetten, horizontale_zetten});
+    geldige_zetten = game.dissolveMatrix({verticale_zetten, horizontale_zetten});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
@@ -155,7 +155,7 @@ MoveVector Koningin::geldige_zetten(Game &game, bool filterCheckMoves) const {
     verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
     horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
     diagonale_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
-    geldige_zetten = game.concatenateMoves({game.dissolveMatrix(verticale_zetten),
+    geldige_zetten = game.dissolveMatrix({game.dissolveMatrix(verticale_zetten),
                                             game.dissolveMatrix(horizontale_zetten),
                                             game.dissolveMatrix(diagonale_zetten)});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
@@ -180,7 +180,7 @@ MoveVector Paard::geldige_zetten(Game &game, bool filterCheckMoves) const {
                                                {getPositie().first+2, getPositie().second-1},
                                                {getPositie().first+2, getPositie().second+1},
     };
-    geldige_zetten = game.concatenateMoves({game.filterIndividualMoves(moves1, getKleur()), game.filterIndividualMoves(moves2, getKleur())});
+    geldige_zetten = game.dissolveMatrix({game.filterIndividualMoves(moves1, getKleur()), game.filterIndividualMoves(moves2, getKleur())});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }

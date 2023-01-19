@@ -31,7 +31,7 @@ void SchaakGUI::clicked(int r, int k) {
     }
     else {
         if(selectedPiece->isZetGeldig(r, k)) {
-            g.setPiece(r, k, selectedPiece, true);
+            g.move(selectedPiece, r, k);
             g.updateAllPieces();
             g.nextTurn();
             update();
