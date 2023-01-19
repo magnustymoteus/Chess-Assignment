@@ -42,9 +42,13 @@ void SchaakGUI::clicked(int r, int k) {
                 schaakStr.append(((g.getCurrentTurn() == wit) ? "zwart" : "wit"));
                 schaakStr.append(" heeft gewonnnen.");
                 message(schaakStr);
+                g.setStartBord();
+                update();
             }
             else if(isPat) {
                 message("Het is pat. Niemand heeft gewonnen.");
+                g.setStartBord();
+                update();
             }
         }
         else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {

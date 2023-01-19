@@ -57,6 +57,31 @@ void Game::updateMoveThreats() {
         currentPiece->setThreatenedMoves(*this);
     }
 }
+
+Move Game::getRandomMove(MoveVector zetten) const {
+    return zetten[rand() % zetten.size()];
+}
+MoveVector Game::getValidTakesOfPiece(SchaakStuk *s) const {
+    MoveVector zetten;
+    for(Move currentMove : s->getValidMoves()) {
+        if(hasEnemyPiece(currentMove.first, currentMove.second, s->getKleur())) zetten.push_back(currentMove);
+    }
+    return zetten;
+}
+std::vector<std::pair<MoveVector, SchaakStuk*>> Game::getValidTakesOfColor(const zw &kleur) const {
+    std::vector<std::pair<MoveVector, SchaakStuk*>> zettenPairs;
+    for(SchaakStuk *currentPiece : stukken) {
+        if(currentPiece->getKleur() == kleur) {
+            std::pair<MoveVector, SchaakStuk*> zetten;
+            MoveVector takes = getValidTakesOfPiece(currentPiece);
+            zetten.first = takes;
+            zetten.second = currentPiece;
+            zettenPairs.push_back(zetten);
+        }
+    }
+    return zettenPairs;
+}
+
 void Game::updateAllPieces(const bool &filterCheckMoves) {
     //updates the game each turn by updating valid moves and threatened pieces ("red pieces")
     for(SchaakStuk *currentPiece : stukken) {
@@ -83,15 +108,26 @@ MoveVector Game::getMoveIntersection(MoveVector zetten1, MoveVector zetten2) con
     return intersection;
 }
 void Game::setStukkenVector() {
-    stukken.clear();
     for(int i=0;i<8;i++) {
         for(int j=0;j<8;j++) {
             if(hasPiece(i, j)) stukken.push_back(getPiece(i, j));
         }
     }
 }
+void Game::resetSchaakBord() {
+    for(int i=0;i<8;i++) {
+        for(int j=0;j<8;j++) {
+            if(schaakBord[i][j] != nullptr) {
+                delete schaakBord[i][j];
+                schaakBord[i][j] = nullptr;
+            }
+        }
+    }
+}
 // Zet het bord klaar; voeg de stukken op de jusite plaats toe
 void Game::setStartBord() {
+    resetStukkenVector();
+    resetSchaakBord();
     setCurrentTurn(wit);
     SchaakStuk *koning_zwart = new Koning(zwart), *koning_wit = new Koning(wit);
     setPiece(0, 4, koning_zwart);

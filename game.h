@@ -23,6 +23,8 @@ public:
     bool pat(const zw &kleur);
     void setStartBord();
     void setStukkenVector();
+    void resetStukkenVector() {stukken.clear();}
+    void resetSchaakBord();
 
     std::vector<SchaakStuk*> getStukken() const {return stukken;}
     SchaakStuk * getPiece(const int &r, const int &k) const;
@@ -54,6 +56,9 @@ public:
     void pushToStukken(SchaakStuk* stuk) {stukken.push_back(stuk);}
     void setSchaakBord(const int &r, const int &k, SchaakStuk* stuk) {schaakBord[r][k] = stuk;}
     MoveVector getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const;
+    Move getRandomMove(MoveVector zetten) const;
+    MoveVector getValidTakesOfPiece(SchaakStuk *s) const;
+    std::vector<std::pair<MoveVector, SchaakStuk*>> getValidTakesOfColor(const zw &kleur) const;
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};
     std::array<SchaakStuk*, 2> koningen {nullptr};
