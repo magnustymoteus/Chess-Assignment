@@ -56,7 +56,7 @@ void Game::updateMoveThreats() {
         currentPiece->setThreatenedMoves(*this);
     }
 }
-void Game::updateAllPieces(bool filterCheckMoves) {
+void Game::updateAllPieces(const bool &filterCheckMoves) {
     //updates the game each turn by updating valid moves and threatened pieces ("red pieces")
     for(SchaakStuk *currentPiece : stukken) {
         currentPiece->setCanBeTaken(false);
@@ -121,7 +121,7 @@ void Game::setStartBord() {
 // Als deze move niet mogelijk is, wordt false teruggegeven
 // en verandert er niets aan het schaakbord.
 // Anders wordt de move uitgevoerd en wordt true teruggegeven
-bool Game::move(SchaakStuk* s, int r, int k) {
+bool Game::move(SchaakStuk* s, const int &r, const int &k) {
     //moves the piece if the move is valid
     if(s->isZetGeldig(r, k)) {
         setPiece(r,k,s, true);
@@ -165,7 +165,7 @@ bool Game::pat(zw kleur) {
 
 // Geeft een pointer naar het schaakstuk dat op rij r, kolom k staat
 // Als er geen schaakstuk staat op deze positie, geef nullptr terug
-SchaakStuk * Game::getPiece(int r, int k) const {
+SchaakStuk * Game::getPiece(const int &r, const int &k) const {
     //returns the piece on the chess board matrix.
     return schaakBord[r][k];
 }
@@ -174,7 +174,7 @@ SchaakStuk * Game::getPiece(int r, int k) const {
 // Als er al een schaakstuk staat, wordt het overschreven.
 // Bewaar in jouw datastructuur de *pointer* naar het schaakstuk,
 // niet het schaakstuk zelf.
-void Game::setPiece(int r, int k, SchaakStuk* s, bool deletePreviousPos)
+void Game::setPiece(const int &r, const int &k, SchaakStuk* s, const bool &deletePreviousPos)
 //sets the piece to a given coordinate, this is similar to move() but doesn't explicitly check if the move is valid.
 {
     if(isBinnenGrens(r, k) && s != nullptr) {
@@ -189,15 +189,15 @@ void Game::setPiece(int r, int k, SchaakStuk* s, bool deletePreviousPos)
    else if(!isBinnenGrens(r, k)) throw std::invalid_argument("not inside chess boundary");
    else if(s == nullptr) throw std::invalid_argument("chess piece is a null pointer");
 }
-void Game::removePiece(int r, int k) {
+void Game::removePiece(const int &r, const int &k) {
     //removes a piece from the chess board matrix
     schaakBord[r][k] = nullptr;
 }
-bool Game::isBinnenGrens(int r, int k) const {
+bool Game::isBinnenGrens(const int &r, const int &k) const {
     //checks if the coordinate is within the chess board coordinates
     return ((0<=r && r<=7) && (0<=k && k<=7));
 }
-bool Game::hasFriendlyPiece(int r, int k, zw kleur) const {
+bool Game::hasFriendlyPiece(const int &r, const int &k, zw kleur) const {
     //checks if on the given coordinate there is a piece of the same color as kleur
     if(getPiece(r, k ) != nullptr) {
         SchaakStuk *s2 = getPiece(r, k);
@@ -205,19 +205,19 @@ bool Game::hasFriendlyPiece(int r, int k, zw kleur) const {
     }
     return false;
 }
-bool Game::hasEnemyPiece(int r, int k, zw kleur) const {
+bool Game::hasEnemyPiece(const int &r, const int &k, zw kleur) const {
     //checks if on the given coordinate there is a piece of the opposite color as kleur
     if(getPiece(r, k ) != nullptr) {
         SchaakStuk *s2 = getPiece(r, k);
         return (s2->getKleur() != kleur);
     }
 }
-bool Game::hasPiece(int r, int k) const {
+bool Game::hasPiece(const int &r, const int &k) const {
     //checks if the item on the given coordinate in the chess board matrix is not a nullptr
     SchaakStuk *s = getPiece(r, k);
     return (s != nullptr);
 }
-MoveMatrix Game::getDiagonalMoves(std::pair<int, int> pos) const {
+MoveMatrix Game::getDiagonalMoves(Move pos) const {
     //generates all possible diagonal moves (not necessarily valid, that would be the job of filter functions)
    Move current = {pos.first, pos.second};
     MoveVector topLeft, topRight, downLeft, downRight;
@@ -231,7 +231,7 @@ MoveMatrix Game::getDiagonalMoves(std::pair<int, int> pos) const {
     }
     return {topLeft, topRight, downLeft, downRight};
 }
-MoveMatrix Game::getHorizontalMoves(std::pair<int, int> pos) const {
+MoveMatrix Game::getHorizontalMoves(Move pos) const {
     //generates all possible horizontal moves (not necessarily valid, that would be the job of filter functions)
     int currR = pos.first, currK = pos.second;
     MoveVector movesLeft, movesRight;
@@ -243,7 +243,7 @@ MoveMatrix Game::getHorizontalMoves(std::pair<int, int> pos) const {
     }
     return {movesLeft, movesRight};
 }
-MoveMatrix Game::getVerticalMoves(std::pair<int, int> pos) const {
+MoveMatrix Game::getVerticalMoves(Move pos) const {
     //generates all possible vertical moves (not necessarily valid, that would be the job of filter functions)
     int currR = pos.first, currK = pos.second;
     MoveVector movesUp, movesDown;
@@ -255,7 +255,7 @@ MoveMatrix Game::getVerticalMoves(std::pair<int, int> pos) const {
     }
     return {movesUp, movesDown};
 }
-MoveVector Game::getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const {
+MoveVector Game::getRadiusMoves(Move pos, const int &radiusFactor) const {
     //generates all possible radius moves (not necessarily valid, that would be the job of filter functions)
     MoveVector moves;
    Move startingCoord = {pos.first-radiusFactor, pos.second-radiusFactor};
@@ -327,7 +327,7 @@ bool Game::validTurn(SchaakStuk *s) const {
     //returns whether it's the turn of the color of the given piece
     return currentTurn == s->getKleur();
 }
-bool Game::hasMove(int r, int k, MoveVector moves) const {
+bool Game::hasMove(const int &r, const int &k, MoveVector moves) const {
     //returns if the given vector of moves includes a certain move
     for(Move currentMove : moves) {
         if(currentMove.first == r && currentMove.second == k) return true;

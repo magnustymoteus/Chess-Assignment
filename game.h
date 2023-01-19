@@ -16,7 +16,7 @@ public:
     Game Clone() const; //copy constructor
     ~Game();
 
-    bool move(SchaakStuk* s, int r, int k); // Verplaats stuk s naar rij r en kolom k
+    bool move(SchaakStuk* s, const int &r, const int &k); // Verplaats stuk s naar rij r en kolom k
 
     bool schaak(zw kleur);
     bool schaakmat(zw kleur);
@@ -25,26 +25,26 @@ public:
     void setStukkenVector();
 
     std::vector<SchaakStuk*> getStukken() const {return stukken;}
-    SchaakStuk * getPiece(int r, int k) const;
+    SchaakStuk * getPiece(const int &r, const int &k) const;
     void printBord() const;
-    bool isBinnenGrens(int r, int k) const;
-    void setPiece(int r, int k, SchaakStuk* s, bool deletePreviousPos=false);
-    void removePiece(int r, int k);
-    bool hasPiece(int r, int k) const;
-    bool hasFriendlyPiece(int r, int k, zw kleur) const;
-    bool hasEnemyPiece(int r, int k, zw kleur) const;
-    void updateAllPieces(bool filterCheckMoves=true);
+    bool isBinnenGrens(const int &r, const int &k) const;
+    void setPiece(const int &r, const int &k, SchaakStuk* s, const bool &deletePreviousPos=false);
+    void removePiece(const int &r, const int &k);
+    bool hasPiece(const int &r, const int &k) const;
+    bool hasFriendlyPiece(const int &r, const int &k, zw kleur) const;
+    bool hasEnemyPiece(const int &r, const int &k, zw kleur) const;
+    void updateAllPieces(const bool &filterCheckMoves=true);
     void updateMoveThreats();
-    MoveVector getRadiusMoves(std::pair<int, int> pos, int radiusFactor) const;
-    MoveMatrix getDiagonalMoves(std::pair<int, int> pos) const;
-    MoveMatrix getHorizontalMoves(std::pair<int, int> pos) const;
-    std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(std::pair<int, int> pos) const;
+    MoveVector getRadiusMoves(Move pos, const int &radiusFactor) const;
+    MoveMatrix getDiagonalMoves(Move pos) const;
+    MoveMatrix getHorizontalMoves(Move pos) const;
+    std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(Move pos) const;
     MoveVector filterBlockedMoves(MoveVector zetten, zw kleur) const;
     MoveMatrix filterBlockedMovesMatrix(MoveMatrix zetten, zw kleur) const;
     MoveVector dissolveMatrix(MoveMatrix matrix) const;
     MoveVector filterIndividualMoves(MoveVector zetten, zw kleur) const;
     MoveVector filterSelfCheckMoves(MoveVector zetten, Move position) const;
-    bool hasMove(int r, int k, MoveVector moves) const;
+    bool hasMove(const int &r, const int &k, MoveVector moves) const;
     bool validTurn(SchaakStuk *s) const;
     void nextTurn();
     zw getCurrentTurn() const {return currentTurn;}
@@ -52,7 +52,7 @@ public:
     void setKoningen(std::array<SchaakStuk*, 2> newKoningen) {koningen=newKoningen;}
     void setCurrentTurn(zw newTurn) {currentTurn=newTurn;}
     void pushToStukken(SchaakStuk* stuk) {stukken.push_back(stuk);}
-    void setSchaakBord(int r, int k, SchaakStuk* stuk) {schaakBord[r][k] = stuk;}
+    void setSchaakBord(const int &r, const int &k, SchaakStuk* stuk) {schaakBord[r][k] = stuk;}
     MoveVector getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const;
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};
