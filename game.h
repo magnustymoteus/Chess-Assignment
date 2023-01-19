@@ -18,9 +18,9 @@ public:
 
     bool move(SchaakStuk* s, const int &r, const int &k); // Verplaats stuk s naar rij r en kolom k
 
-    bool schaak(zw kleur);
-    bool schaakmat(zw kleur);
-    bool pat(zw kleur);
+    bool schaak(const zw &kleur);
+    bool schaakmat(const zw &kleur);
+    bool pat(const zw &kleur);
     void setStartBord();
     void setStukkenVector();
 
@@ -31,18 +31,18 @@ public:
     void setPiece(const int &r, const int &k, SchaakStuk* s, const bool &deletePreviousPos=false);
     void removePiece(const int &r, const int &k);
     bool hasPiece(const int &r, const int &k) const;
-    bool hasFriendlyPiece(const int &r, const int &k, zw kleur) const;
-    bool hasEnemyPiece(const int &r, const int &k, zw kleur) const;
+    bool hasFriendlyPiece(const int &r, const int &k, const zw &kleur) const;
+    bool hasEnemyPiece(const int &r, const int &k, const zw &kleur) const;
     void updateAllPieces(const bool &filterCheckMoves=true);
     void updateMoveThreats();
     MoveVector getRadiusMoves(Move pos, const int &radiusFactor) const;
     MoveMatrix getDiagonalMoves(Move pos) const;
     MoveMatrix getHorizontalMoves(Move pos) const;
     std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(Move pos) const;
-    MoveVector filterBlockedMoves(MoveVector zetten, zw kleur) const;
-    MoveMatrix filterBlockedMovesMatrix(MoveMatrix zetten, zw kleur) const;
+    MoveVector filterBlockedMoves(MoveVector zetten, const zw &kleur) const;
+    MoveMatrix filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const;
     MoveVector dissolveMatrix(MoveMatrix matrix) const;
-    MoveVector filterIndividualMoves(MoveVector zetten, zw kleur) const;
+    MoveVector filterIndividualMoves(MoveVector zetten, const zw &kleur) const;
     MoveVector filterSelfCheckMoves(MoveVector zetten, Move position) const;
     bool hasMove(const int &r, const int &k, MoveVector moves) const;
     bool validTurn(SchaakStuk *s) const;

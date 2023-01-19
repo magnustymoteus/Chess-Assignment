@@ -9,7 +9,6 @@
 
 Game::Game() {
     setStartBord();
-    currentTurn = wit;
 }
 Game Game::Clone() const {
     // clones the instance and returns it
@@ -37,7 +36,9 @@ Game Game::Clone() const {
     }
     return newGame;
 }
-Game::~Game() {}
+Game::~Game() {
+    for(SchaakStuk* &currentPiece : stukken) delete currentPiece;
+}
 
 void Game::printBord() const {
     //prints the current chess board for debugging purposes
@@ -82,6 +83,7 @@ MoveVector Game::getMoveIntersection(MoveVector zetten1, MoveVector zetten2) con
     return intersection;
 }
 void Game::setStukkenVector() {
+    stukken.clear();
     for(int i=0;i<8;i++) {
         for(int j=0;j<8;j++) {
             if(hasPiece(i, j)) stukken.push_back(getPiece(i, j));
@@ -90,6 +92,7 @@ void Game::setStukkenVector() {
 }
 // Zet het bord klaar; voeg de stukken op de jusite plaats toe
 void Game::setStartBord() {
+    setCurrentTurn(wit);
     SchaakStuk *koning_zwart = new Koning(zwart), *koning_wit = new Koning(wit);
     setPiece(0, 4, koning_zwart);
     setPiece(7, 4, koning_wit);
@@ -131,7 +134,7 @@ bool Game::move(SchaakStuk* s, const int &r, const int &k) {
 }
 
 // Geeft true als kleur schaak staat
-bool Game::schaak(zw kleur) {
+bool Game::schaak(const zw &kleur) {
     //checks if there is a check
     Move koningPos = koningen[kleur == zwart]->getPositie();
         for(SchaakStuk* currentPiece : stukken) {
@@ -142,7 +145,7 @@ bool Game::schaak(zw kleur) {
 }
 
 // Geeft true als kleur schaakmat staat
-bool Game::schaakmat(zw kleur) {
+bool Game::schaakmat(const zw &kleur) {
     //checks if there is a checkmate
     bool isSchaak = schaak(kleur);
     for(SchaakStuk* currentPiece : stukken) {
@@ -154,7 +157,7 @@ bool Game::schaakmat(zw kleur) {
 // Geeft true als kleur pat staat
 // (pat = geen geldige zet mogelijk, maar kleur staat niet schaak;
 // dit resulteert in een gelijkspel)
-bool Game::pat(zw kleur) {
+bool Game::pat(const zw &kleur) {
     //checks if there is a stalemate
     bool isSchaak = schaak(kleur);
     for(SchaakStuk* currentPiece : stukken) {
@@ -197,7 +200,7 @@ bool Game::isBinnenGrens(const int &r, const int &k) const {
     //checks if the coordinate is within the chess board coordinates
     return ((0<=r && r<=7) && (0<=k && k<=7));
 }
-bool Game::hasFriendlyPiece(const int &r, const int &k, zw kleur) const {
+bool Game::hasFriendlyPiece(const int &r, const int &k, const zw &kleur) const {
     //checks if on the given coordinate there is a piece of the same color as kleur
     if(getPiece(r, k ) != nullptr) {
         SchaakStuk *s2 = getPiece(r, k);
@@ -205,7 +208,7 @@ bool Game::hasFriendlyPiece(const int &r, const int &k, zw kleur) const {
     }
     return false;
 }
-bool Game::hasEnemyPiece(const int &r, const int &k, zw kleur) const {
+bool Game::hasEnemyPiece(const int &r, const int &k, const zw &kleur) const {
     //checks if on the given coordinate there is a piece of the opposite color as kleur
     if(getPiece(r, k ) != nullptr) {
         SchaakStuk *s2 = getPiece(r, k);
@@ -266,7 +269,7 @@ MoveVector Game::getRadiusMoves(Move pos, const int &radiusFactor) const {
     }
     return moves;
 }
-MoveVector Game::filterBlockedMoves(MoveVector zetten, zw kleur) const {
+MoveVector Game::filterBlockedMoves(MoveVector zetten, const zw &kleur) const {
     //pushes moves to the vector until there is a piece in the way (includes that move if it is an enemy piece)
     //also removes moves that happen to be outside of boundary
     MoveVector geldige_zetten;
@@ -282,7 +285,7 @@ MoveVector Game::filterBlockedMoves(MoveVector zetten, zw kleur) const {
     }
     return geldige_zetten;
 }
-MoveMatrix Game::filterBlockedMovesMatrix(MoveMatrix zetten, zw kleur) const {
+MoveMatrix Game::filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const {
     //uses filterBlockedMoves() on all vectors in the vector of those vectors
     MoveMatrix geldige_zetten_matrix;
     for(MoveVector currentMovesArr : zetten) {
@@ -290,7 +293,7 @@ MoveMatrix Game::filterBlockedMovesMatrix(MoveMatrix zetten, zw kleur) const {
     }
     return geldige_zetten_matrix;
 }
-MoveVector Game::filterIndividualMoves(MoveVector zetten, zw kleur) const {
+MoveVector Game::filterIndividualMoves(MoveVector zetten, const zw &kleur) const {
     //pushes moves that are within boundary and have no friendly pieces (enemy or empty)
     MoveVector valid_moves;
     for(std::pair<int, int> currentMove : zetten) {
