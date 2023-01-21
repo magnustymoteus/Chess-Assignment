@@ -42,7 +42,7 @@ public:
     MoveMatrix getHorizontalMoves(Move pos) const;
     std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(Move pos) const;
     MoveVector filterBlockedMoves(MoveVector zetten, const zw &kleur) const;
-    MoveMatrix filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const;
+    MoveVector filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const;
     MoveVector dissolveMatrix(MoveMatrix matrix) const;
     MoveVector filterIndividualMoves(MoveVector zetten, const zw &kleur) const;
     MoveVector filterSelfCheckMoves(MoveVector zetten, Move position) const;
@@ -56,9 +56,10 @@ public:
     void pushToStukken(SchaakStuk* stuk) {stukken.push_back(stuk);}
     void setSchaakBord(const int &r, const int &k, SchaakStuk* stuk) {schaakBord[r][k] = stuk;}
     MoveVector getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const;
-    Move getRandomMove(MoveVector zetten) const;
-    MoveVector getValidTakesOfPiece(SchaakStuk *s) const;
-    std::vector<std::pair<MoveVector, SchaakStuk*>> getValidTakesOfColor(const zw &kleur) const;
+    std::pair<SchaakStuk*, Move> getRandomMoveOfPiece(std::pair<SchaakStuk*, MoveVector> moves) const;
+    std::pair<SchaakStuk*, MoveVector> getRandomPieceOfVector(std::vector<std::pair<SchaakStuk*, MoveVector>> pieces) const;
+    std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> getPrioritizedMovesOfPiece(SchaakStuk *s) const;
+    void takeRandomPrioritizedMove(const zw &kleur);
 private:
     std::array<std::array<SchaakStuk*, 8>, 8> schaakBord {nullptr};
     std::array<SchaakStuk*, 2> koningen {nullptr};

@@ -6,7 +6,6 @@
 
 #include "game.h"
 #include <iostream>
-
 Game::Game() {
     setStartBord();
 }
@@ -58,30 +57,53 @@ void Game::updateMoveThreats() {
     }
 }
 
-Move Game::getRandomMove(MoveVector zetten) const {
-    return zetten[rand() % zetten.size()];
+
+std::pair<SchaakStuk*, Move> Game::getRandomMoveOfPiece(std::pair<SchaakStuk *, MoveVector> moves) const {
+    return {moves.first, moves.second[rand() % moves.second.size()]};
 }
-MoveVector Game::getValidTakesOfPiece(SchaakStuk *s) const {
-    MoveVector zetten;
+std::pair<SchaakStuk*, MoveVector> Game::getRandomPieceOfVector(
+        std::vector<std::pair<SchaakStuk *, MoveVector>> pieces) const {
+    int randomNum = rand() % pieces.size();
+    return {pieces[randomNum].first, pieces[randomNum].second};
+}
+void Game::takeRandomPrioritizedMove(const zw &kleur) {
+    std::vector<std::pair<SchaakStuk*, MoveVector>> checkmate_zetten;
+    std::vector<std::pair<SchaakStuk*, MoveVector>> check_zetten;
+    std::vector<std::pair<SchaakStuk*, MoveVector>> takeable_zetten;
+    std::vector<std::pair<SchaakStuk*, MoveVector>> normale_zetten;
+    std::pair<SchaakStuk*, Move> moveToBeMade;
+    for(SchaakStuk* currentPiece : stukken) {
+        if(currentPiece->getKleur() == kleur) {
+            std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> prioritizedMoves = getPrioritizedMovesOfPiece(currentPiece);
+            if(!std::get<0>(prioritizedMoves).empty())
+                checkmate_zetten.push_back({currentPiece, std::get<0>(prioritizedMoves)});
+            if(!std::get<1>(prioritizedMoves).empty()) check_zetten.push_back({currentPiece, std::get<1>(prioritizedMoves)});
+            if(!std::get<2>(prioritizedMoves).empty()) takeable_zetten.push_back({currentPiece, std::get<2>(prioritizedMoves)});
+            if(!std::get<3>(prioritizedMoves).empty()) normale_zetten.push_back({currentPiece, std::get<3>(prioritizedMoves)});
+        }
+    }
+    if(!checkmate_zetten.empty()) moveToBeMade =
+            getRandomMoveOfPiece(getRandomPieceOfVector(checkmate_zetten));
+    else if(!check_zetten.empty()) moveToBeMade =
+            getRandomMoveOfPiece(getRandomPieceOfVector(check_zetten));
+    else if(!takeable_zetten.empty()) moveToBeMade =
+            getRandomMoveOfPiece(getRandomPieceOfVector(takeable_zetten));
+    else moveToBeMade = getRandomMoveOfPiece(getRandomPieceOfVector(normale_zetten));
+    move(moveToBeMade.first, moveToBeMade.second.first, moveToBeMade.second.second);
+}
+std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> Game::getPrioritizedMovesOfPiece(SchaakStuk *s) const {
+    std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> zetten;
     for(Move currentMove : s->getValidMoves()) {
-        if(hasEnemyPiece(currentMove.first, currentMove.second, s->getKleur())) zetten.push_back(currentMove);
+        Game gameCpy = Clone();
+        SchaakStuk *sCpy = gameCpy.getPiece(s->getPositie().first, s->getPositie().second);
+        gameCpy.move(sCpy, currentMove.first, currentMove.second);
+        if(gameCpy.schaakmat((sCpy->getKleur() == wit) ? zwart : wit)) std::get<0>(zetten).push_back(currentMove);
+        else if(gameCpy.schaakmat((sCpy->getKleur() == wit) ? zwart : wit)) std::get<1>(zetten).push_back(currentMove);
+        else if(hasEnemyPiece(currentMove.first, currentMove.second, s->getKleur())) std::get<2>(zetten).push_back(currentMove);
+        else std::get<3>(zetten).push_back(currentMove);
     }
     return zetten;
 }
-std::vector<std::pair<MoveVector, SchaakStuk*>> Game::getValidTakesOfColor(const zw &kleur) const {
-    std::vector<std::pair<MoveVector, SchaakStuk*>> zettenPairs;
-    for(SchaakStuk *currentPiece : stukken) {
-        if(currentPiece->getKleur() == kleur) {
-            std::pair<MoveVector, SchaakStuk*> zetten;
-            MoveVector takes = getValidTakesOfPiece(currentPiece);
-            zetten.first = takes;
-            zetten.second = currentPiece;
-            zettenPairs.push_back(zetten);
-        }
-    }
-    return zettenPairs;
-}
-
 void Game::updateAllPieces(const bool &filterCheckMoves) {
     //updates the game each turn by updating valid moves and threatened pieces ("red pieces")
     for(SchaakStuk *currentPiece : stukken) {
@@ -164,6 +186,8 @@ bool Game::move(SchaakStuk* s, const int &r, const int &k) {
     //moves the piece if the move is valid
     if(s->isZetGeldig(r, k)) {
         setPiece(r,k,s, true);
+        updateAllPieces();
+        nextTurn();
         return true;
     }
     return false;
@@ -218,15 +242,13 @@ void Game::setPiece(const int &r, const int &k, SchaakStuk* s, const bool &delet
 {
     if(isBinnenGrens(r, k) && s != nullptr) {
         if(hasPiece(r, k)) {
-        for(auto iter = stukken.begin();iter!=stukken.end();iter++) {
-            if(((*iter)->getPositie().first == r) && ((*iter)->getPositie().second == k)) stukken.erase(iter);
+        for(int i=0;i<stukken.size();i++) {
+            if((stukken[i]->getPositie().first == r) && (stukken[i]->getPositie().second == k)) stukken.erase(stukken.begin()+i);
         }}
         if(deletePreviousPos) removePiece(s->getPositie().first, s->getPositie().second);
         schaakBord[r][k] = s;
         s->setPositie({r, k});
     }
-   else if(!isBinnenGrens(r, k)) throw std::invalid_argument("not inside chess boundary");
-   else if(s == nullptr) throw std::invalid_argument("chess piece is a null pointer");
 }
 void Game::removePiece(const int &r, const int &k) {
     //removes a piece from the chess board matrix
@@ -275,7 +297,7 @@ MoveMatrix Game::getHorizontalMoves(Move pos) const {
     int currR = pos.first, currK = pos.second;
     MoveVector movesLeft, movesRight;
     int i = 1;
-    while(i < 8) {
+    while(currK+i < 8 || currK-i >= 0) {
         if(currK+i < 8) movesRight.push_back({currR, currK+i});
         if(currK-i >= 0) movesLeft.push_back({currR, currK-i});
         i++;
@@ -287,7 +309,7 @@ MoveMatrix Game::getVerticalMoves(Move pos) const {
     int currR = pos.first, currK = pos.second;
     MoveVector movesUp, movesDown;
     int i = 1;
-    while(i < 8) {
+    while(currR+i < 8 || currR-i >= 0) {
         if(currR+i < 8) movesDown.push_back({currR+i, currK});
         if(currR-i >= 0) movesUp.push_back({currR-i, currK});
         i++;
@@ -300,7 +322,7 @@ MoveVector Game::getRadiusMoves(Move pos, const int &radiusFactor) const {
    Move startingCoord = {pos.first-radiusFactor, pos.second-radiusFactor};
     for(int i=startingCoord.first;i<startingCoord.first+radiusFactor*2+1;i++) {
         for(int j=startingCoord.second;j<startingCoord.second+radiusFactor*2+1;j++) {
-            if(i != pos.first || j != pos.second ) moves.push_back({i, j});
+            moves.push_back({i, j});
         }
     }
     return moves;
@@ -321,21 +343,21 @@ MoveVector Game::filterBlockedMoves(MoveVector zetten, const zw &kleur) const {
     }
     return geldige_zetten;
 }
-MoveMatrix Game::filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const {
+MoveVector Game::filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const {
     //uses filterBlockedMoves() on all vectors in the vector of those vectors
-    MoveMatrix geldige_zetten_matrix;
+    MoveVector geldige_zetten;
     for(MoveVector currentMovesArr : zetten) {
-        geldige_zetten_matrix.push_back(filterBlockedMoves(currentMovesArr, kleur));
+        MoveVector arr = filterBlockedMoves(currentMovesArr, kleur);
+        geldige_zetten.insert(geldige_zetten.begin(), arr.begin(), arr.end());
     }
-    return geldige_zetten_matrix;
+    return geldige_zetten;
 }
 MoveVector Game::filterIndividualMoves(MoveVector zetten, const zw &kleur) const {
     //pushes moves that are within boundary and have no friendly pieces (enemy or empty)
     MoveVector valid_moves;
-    for(std::pair<int, int> currentMove : zetten) {
-        if(isBinnenGrens(currentMove.first, currentMove.second) && !hasFriendlyPiece(currentMove.first, currentMove.second, kleur)) {
-            valid_moves.push_back(currentMove);
-        }
+    for(Move currentMove : zetten) {
+        if(isBinnenGrens(currentMove.first, currentMove.second) &&
+        !hasFriendlyPiece(currentMove.first, currentMove.second, kleur)) valid_moves.push_back(currentMove);
     }
     return valid_moves;
 }

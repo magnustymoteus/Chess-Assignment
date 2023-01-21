@@ -32,6 +32,8 @@ private:
     void displayThreatenedPieces();
     void displayThreatenedMoves(MoveVector tiles);
     void updateVisualization();
+    bool moveSelectedPiece(const int &r, const int &k);
+    void endCheck();
 
 /*  Overgeerfde functies van ChessWindow:
 

@@ -6,7 +6,6 @@
 #include "guicode/message.h"
 #include "guicode/fileIO.h"
 #include <iostream>
-
 // Constructor
 SchaakGUI::SchaakGUI():ChessWindow(nullptr) {
     update();
@@ -16,9 +15,39 @@ SchaakGUI::SchaakGUI():ChessWindow(nullptr) {
 // Deze functie wordt opgeroepen telkens er op het schaakbord
 // geklikt wordt. x,y geeft de positie aan waar er geklikt
 // werd; r is de 0-based rij, k de 0-based kolom
+void SchaakGUI::endCheck() {
+    bool isSchaakMat = g.schaakmat(g.getCurrentTurn());
+    bool isPat = g.pat(g.getCurrentTurn());
+    if(isSchaakMat) {
+        QString schaakStr = "schaakmaat, ";
+        schaakStr.append(((g.getCurrentTurn() == wit) ? "zwart" : "wit"));
+        schaakStr.append(" heeft gewonnnen.");
+        message(schaakStr);
+        g.setStartBord();
+        update();
+    }
+    else if(isPat) {
+        message("Het is pat. Niemand heeft gewonnen.");
+        g.setStartBord();
+        update();
+    }
+}
+bool SchaakGUI::moveSelectedPiece(const int &r, const int &k) {
+    if(g.move(selectedPiece, r, k)) {
+        update();
+        endCheck();
+        selectedPiece = nullptr;
+        return true;
+    }
+    else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
+        message("Deze zet is ongeldig.");
+    }
+    selectedPiece = nullptr;
+    return false;
+}
 void SchaakGUI::clicked(int r, int k) {
     removeAllMarking();
-    if(!isPieceSelected()) {
+    if(!isPieceSelected() /*&& g.getCurrentTurn() == wit*/) {
         if (g.hasPiece(r, k)) {
             SchaakStuk *clickedPiece = g.getPiece(r, k);
             if (g.validTurn(clickedPiece)) {
@@ -30,31 +59,11 @@ void SchaakGUI::clicked(int r, int k) {
         }
     }
     else {
-        if(selectedPiece->isZetGeldig(r, k)) {
-            g.move(selectedPiece, r, k);
-            g.updateAllPieces();
-            g.nextTurn();
+        if(moveSelectedPiece(r, k)) {
+            g.takeRandomPrioritizedMove(g.getCurrentTurn());
             update();
-            bool isSchaakMat = g.schaakmat(g.getCurrentTurn());
-            bool isPat = g.pat(g.getCurrentTurn());
-            if(isSchaakMat) {
-                QString schaakStr = "schaakmaat, ";
-                schaakStr.append(((g.getCurrentTurn() == wit) ? "zwart" : "wit"));
-                schaakStr.append(" heeft gewonnnen.");
-                message(schaakStr);
-                g.setStartBord();
-                update();
-            }
-            else if(isPat) {
-                message("Het is pat. Niemand heeft gewonnen.");
-                g.setStartBord();
-                update();
-            }
+            endCheck();
         }
-        else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
-            message("Deze zet is ongeldig.");
-        }
-        selectedPiece = nullptr;
     }
     displayThreatenedPieces();
 }
@@ -148,11 +157,9 @@ void SchaakGUI::updateVisualization() {
 void SchaakGUI::displayThreatenedPieces() {
     for(SchaakStuk* currentPiece : g.getStukken()) {
             if (currentPiece->getCanBeTaken()) {
-                bool factor;
-                factor = (currentPiece->getKleur() == g.getCurrentTurn()) ? displayThreats() : displayKills();
+                bool factor = (currentPiece->getKleur() == g.getCurrentTurn()) ? displayThreats() : displayKills();
                 setPieceThreat(currentPiece->getPositie().first, currentPiece->getPositie().second, factor);
             }
-
     }
 }
 

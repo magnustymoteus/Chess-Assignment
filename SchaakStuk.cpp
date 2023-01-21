@@ -100,7 +100,7 @@ MoveVector Pion::filter_ongeldige_zetten(MoveVector zetten, const zetType &type,
     MoveVector geldige_zetten;
     //alle zetten moeten van hetzelfde type zijn
     for(Move zet : zetten) {
-        if(zet_geldig(zet, type, game) && game.isBinnenGrens(zet.first, zet.second)) geldige_zetten.push_back(zet);
+        if(zet_geldig(zet, type, game)) geldige_zetten.push_back(zet);
     }
     return geldige_zetten;
 }
@@ -123,18 +123,18 @@ MoveVector Pion::geldige_zetten(Game &game, const bool &filterCheckMoves) const 
     vangbare_zetten.push_back({getPositie().first+direction, getPositie().second+1});
     vangbare_zetten.push_back({getPositie().first+direction, getPositie().second-1});
     vangbare_zetten = filter_ongeldige_zetten(vangbare_zetten, vangbaar, game);
+    if(filterCheckMoves) vangbare_zetten = game.filterSelfCheckMoves(vangbare_zetten, getPositie());
     geldige_zetten = vangbare_zetten;
     if(zet_geldig(normaleZet, normaal, game)) geldige_zetten.push_back(normaleZet);
     if(zet_geldig(specialeZet, speciaal, game)) geldige_zetten.push_back(specialeZet);
-    if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
 MoveVector Toren::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten, verticale_zetten, horizontale_zetten;
     MoveMatrix verticale_zetten_matrix = game.getVerticalMoves(getPositie());
     MoveMatrix horizontale_zetten_matrix = game.getHorizontalMoves(getPositie());
-    verticale_zetten = game.dissolveMatrix(game.filterBlockedMovesMatrix(verticale_zetten_matrix, getKleur()));
-    horizontale_zetten = game.dissolveMatrix(game.filterBlockedMovesMatrix(horizontale_zetten_matrix, getKleur()));
+    verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten_matrix, getKleur());
+    horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten_matrix, getKleur());
     geldige_zetten = game.dissolveMatrix({verticale_zetten, horizontale_zetten});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
@@ -142,22 +142,19 @@ MoveVector Toren::geldige_zetten(Game &game, const bool &filterCheckMoves) const
 MoveVector Loper::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten;
     MoveMatrix diagonale_zetten = game.getDiagonalMoves(getPositie());
-    diagonale_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
-    geldige_zetten = game.dissolveMatrix(diagonale_zetten);
+    geldige_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
 MoveVector Koningin::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
-    MoveVector geldige_zetten;
+    MoveVector geldige_zetten, verticale, horizontale, diagonale;
     MoveMatrix verticale_zetten = game.getVerticalMoves(getPositie());
     MoveMatrix horizontale_zetten = game.getHorizontalMoves(getPositie());
     MoveMatrix diagonale_zetten = game.getDiagonalMoves(getPositie());
-    verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
-    horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
-    diagonale_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
-    geldige_zetten = game.dissolveMatrix({game.dissolveMatrix(verticale_zetten),
-                                            game.dissolveMatrix(horizontale_zetten),
-                                            game.dissolveMatrix(diagonale_zetten)});
+    verticale = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
+    horizontale = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
+    diagonale = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
+    geldige_zetten = game.dissolveMatrix({verticale, horizontale, diagonale});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
