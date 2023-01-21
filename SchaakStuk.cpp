@@ -115,18 +115,15 @@ bool Pion::heeft_bewogen() const {
 
 MoveVector Pion::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten;
-    MoveVector vangbare_zetten;
     int direction = (getKleur() == wit) ? -1 : 1;
+    MoveVector vangbare_zetten = {{getPositie().first+direction, getPositie().second+1}, {getPositie().first+direction, getPositie().second-1}};
    Move normaleZet = {getPositie().first+direction,getPositie().second};
    Move specialeZet = {getPositie().first+(direction*2), getPositie().second};
-
-    vangbare_zetten.push_back({getPositie().first+direction, getPositie().second+1});
-    vangbare_zetten.push_back({getPositie().first+direction, getPositie().second-1});
     vangbare_zetten = filter_ongeldige_zetten(vangbare_zetten, vangbaar, game);
-    if(filterCheckMoves) vangbare_zetten = game.filterSelfCheckMoves(vangbare_zetten, getPositie());
     geldige_zetten = vangbare_zetten;
     if(zet_geldig(normaleZet, normaal, game)) geldige_zetten.push_back(normaleZet);
     if(zet_geldig(specialeZet, speciaal, game)) geldige_zetten.push_back(specialeZet);
+    if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
 MoveVector Toren::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
