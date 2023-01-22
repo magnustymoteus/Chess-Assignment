@@ -27,13 +27,13 @@ private:
     void undo() override;
     void redo() override;
     void visualizationChange() override;
-    void selectTiles(MoveVector tiles);
+    void selectTiles(const MoveVector &tiles);
     bool isPieceSelected() const;
     void displayThreatenedPieces();
-    void displayThreatenedMoves(MoveVector tiles);
+    void displayThreatenedMoves(SchaakStuk *s);
     void updateVisualization();
     bool moveSelectedPiece(const int &r, const int &k);
-    void endCheck();
+    bool endCheck();
 
 /*  Overgeerfde functies van ChessWindow:
 

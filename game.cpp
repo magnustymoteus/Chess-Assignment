@@ -7,6 +7,7 @@
 #include "game.h"
 #include <iostream>
 Game::Game() {
+    currentTurn = wit;
     setStartBord();
 }
 Game Game::Clone() const {
@@ -39,30 +40,11 @@ Game::~Game() {
     for(SchaakStuk* &currentPiece : stukken) delete currentPiece;
 }
 
-void Game::printBord() const {
-    //prints the current chess board for debugging purposes
-    for(int i=0;i<schaakBord.size();i++) {
-        for(int j=0;j<schaakBord[i].size();j++) {
-            if(schaakBord[i][j] != nullptr) std::cout << "y ";
-            else std::cout << "n ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
-void Game::updateMoveThreats() {
-    //updates all "red moves/squares" for all pieces
-    for(SchaakStuk *currentPiece : stukken) {
-        currentPiece->setThreatenedMoves(*this);
-    }
-}
-
-
-std::pair<SchaakStuk*, Move> Game::getRandomMoveOfPiece(std::pair<SchaakStuk *, MoveVector> moves) const {
+std::pair<SchaakStuk*, Move> Game::getRandomMoveOfPiece(std::pair<SchaakStuk *, MoveVector> moves) {
     return {moves.first, moves.second[rand() % moves.second.size()]};
 }
 std::pair<SchaakStuk*, MoveVector> Game::getRandomPieceOfVector(
-        std::vector<std::pair<SchaakStuk *, MoveVector>> pieces) const {
+        std::vector<std::pair<SchaakStuk *, MoveVector>> pieces) {
     int randomNum = rand() % pieces.size();
     return {pieces[randomNum].first, pieces[randomNum].second};
 }
@@ -76,10 +58,10 @@ void Game::takeRandomPrioritizedMove(const zw &kleur) {
         if(currentPiece->getKleur() == kleur) {
             std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> prioritizedMoves = getPrioritizedMovesOfPiece(currentPiece);
             if(!std::get<0>(prioritizedMoves).empty())
-                checkmate_zetten.push_back({currentPiece, std::get<0>(prioritizedMoves)});
-            if(!std::get<1>(prioritizedMoves).empty()) check_zetten.push_back({currentPiece, std::get<1>(prioritizedMoves)});
-            if(!std::get<2>(prioritizedMoves).empty()) takeable_zetten.push_back({currentPiece, std::get<2>(prioritizedMoves)});
-            if(!std::get<3>(prioritizedMoves).empty()) normale_zetten.push_back({currentPiece, std::get<3>(prioritizedMoves)});
+                checkmate_zetten.emplace_back(currentPiece, std::get<0>(prioritizedMoves));
+            if(!std::get<1>(prioritizedMoves).empty()) check_zetten.emplace_back(currentPiece, std::get<1>(prioritizedMoves));
+            if(!std::get<2>(prioritizedMoves).empty()) takeable_zetten.emplace_back(currentPiece, std::get<2>(prioritizedMoves));
+            if(!std::get<3>(prioritizedMoves).empty()) normale_zetten.emplace_back(currentPiece, std::get<3>(prioritizedMoves));
         }
     }
     if(!checkmate_zetten.empty()) moveToBeMade =
@@ -98,7 +80,7 @@ std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> Game::getPrioritizedM
         SchaakStuk *sCpy = gameCpy.getPiece(s->getPositie().first, s->getPositie().second);
         gameCpy.move(sCpy, currentMove.first, currentMove.second);
         if(gameCpy.schaakmat((sCpy->getKleur() == wit) ? zwart : wit)) std::get<0>(zetten).push_back(currentMove);
-        else if(gameCpy.schaakmat((sCpy->getKleur() == wit) ? zwart : wit)) std::get<1>(zetten).push_back(currentMove);
+        else if(gameCpy.schaak((sCpy->getKleur() == wit) ? zwart : wit)) std::get<1>(zetten).push_back(currentMove);
         else if(hasEnemyPiece(currentMove.first, currentMove.second, s->getKleur())) std::get<2>(zetten).push_back(currentMove);
         else std::get<3>(zetten).push_back(currentMove);
     }
@@ -110,7 +92,6 @@ void Game::updateAllPieces(const bool &filterCheckMoves) {
         currentPiece->setCanBeTaken(false);
         currentPiece->updateValidMoves(*this, filterCheckMoves);
     }
-    updateMoveThreats();
     for(SchaakStuk *currentPiece : stukken) {
         for(Move currentMove : currentPiece->getValidMoves()) {
             if(hasEnemyPiece(currentMove.first, currentMove.second, currentPiece->getKleur()))
@@ -118,7 +99,7 @@ void Game::updateAllPieces(const bool &filterCheckMoves) {
         }
     }
 }
-MoveVector Game::getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const {
+MoveVector Game::getMoveIntersection(const MoveVector& zetten1, const MoveVector& zetten2) {
     //gets the intersection of two vectors
     MoveVector intersection;
     for(Move currentMove1 : zetten1) {
@@ -254,7 +235,7 @@ void Game::removePiece(const int &r, const int &k) {
     //removes a piece from the chess board matrix
     schaakBord[r][k] = nullptr;
 }
-bool Game::isBinnenGrens(const int &r, const int &k) const {
+bool Game::isBinnenGrens(const int &r, const int &k) {
     //checks if the coordinate is within the chess board coordinates
     return ((0<=r && r<=7) && (0<=k && k<=7));
 }
@@ -278,56 +259,56 @@ bool Game::hasPiece(const int &r, const int &k) const {
     SchaakStuk *s = getPiece(r, k);
     return (s != nullptr);
 }
-MoveMatrix Game::getDiagonalMoves(Move pos) const {
+MoveMatrix Game::getDiagonalMoves(Move pos) {
     //generates all possible diagonal moves (not necessarily valid, that would be the job of filter functions)
    Move current = {pos.first, pos.second};
     MoveVector topLeft, topRight, downLeft, downRight;
     int i = 1;
     while(i < 8) {
-        topLeft.push_back({current.first-i, current.second-i});
-        topRight.push_back({current.first-i, current.second+i});
-        downLeft.push_back({current.first+i, current.second-i});
-        downRight.push_back({current.first+i, current.second+i});
+        topLeft.emplace_back(current.first-i, current.second-i);
+        topRight.emplace_back(current.first-i, current.second+i);
+        downLeft.emplace_back(current.first+i, current.second-i);
+        downRight.emplace_back(current.first+i, current.second+i);
         i++;
     }
     return {topLeft, topRight, downLeft, downRight};
 }
-MoveMatrix Game::getHorizontalMoves(Move pos) const {
+MoveMatrix Game::getHorizontalMoves(Move pos) {
     //generates all possible horizontal moves (not necessarily valid, that would be the job of filter functions)
     int currR = pos.first, currK = pos.second;
     MoveVector movesLeft, movesRight;
     int i = 1;
     while(currK+i < 8 || currK-i >= 0) {
-        if(currK+i < 8) movesRight.push_back({currR, currK+i});
-        if(currK-i >= 0) movesLeft.push_back({currR, currK-i});
+        if(currK+i < 8) movesRight.emplace_back(currR, currK+i);
+        if(currK-i >= 0) movesLeft.emplace_back(currR, currK-i);
         i++;
     }
     return {movesLeft, movesRight};
 }
-MoveMatrix Game::getVerticalMoves(Move pos) const {
+MoveMatrix Game::getVerticalMoves(Move pos) {
     //generates all possible vertical moves (not necessarily valid, that would be the job of filter functions)
     int currR = pos.first, currK = pos.second;
     MoveVector movesUp, movesDown;
     int i = 1;
     while(currR+i < 8 || currR-i >= 0) {
-        if(currR+i < 8) movesDown.push_back({currR+i, currK});
-        if(currR-i >= 0) movesUp.push_back({currR-i, currK});
+        if(currR+i < 8) movesDown.emplace_back(currR+i, currK);
+        if(currR-i >= 0) movesUp.emplace_back(currR-i, currK);
         i++;
     }
     return {movesUp, movesDown};
 }
-MoveVector Game::getRadiusMoves(Move pos, const int &radiusFactor) const {
+MoveVector Game::getRadiusMoves(Move pos, const int &radiusFactor) {
     //generates all possible radius moves (not necessarily valid, that would be the job of filter functions)
     MoveVector moves;
    Move startingCoord = {pos.first-radiusFactor, pos.second-radiusFactor};
     for(int i=startingCoord.first;i<startingCoord.first+radiusFactor*2+1;i++) {
         for(int j=startingCoord.second;j<startingCoord.second+radiusFactor*2+1;j++) {
-            moves.push_back({i, j});
+            moves.emplace_back(i, j);
         }
     }
     return moves;
 }
-MoveVector Game::filterBlockedMoves(MoveVector zetten, const zw &kleur) const {
+MoveVector Game::filterBlockedMoves(const MoveVector& zetten, const zw &kleur) const {
     //pushes moves to the vector until there is a piece in the way (includes that move if it is an enemy piece)
     //also removes moves that happen to be outside of boundary
     MoveVector geldige_zetten;
@@ -336,23 +317,23 @@ MoveVector Game::filterBlockedMoves(MoveVector zetten, const zw &kleur) const {
             if(!isBinnenGrens(currentRow, currentColumn) || hasPiece(currentRow, currentColumn)) {
                 if(isBinnenGrens(currentRow, currentColumn) &&
                 hasEnemyPiece(currentRow, currentColumn, kleur))
-                    geldige_zetten.push_back({currentRow, currentColumn});
+                    geldige_zetten.emplace_back(currentRow, currentColumn);
                 break;
             }
-            else geldige_zetten.push_back({currentRow, currentColumn});
+            else geldige_zetten.emplace_back(currentRow, currentColumn);
     }
     return geldige_zetten;
 }
-MoveVector Game::filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const {
+MoveVector Game::filterBlockedMovesMatrix(const MoveMatrix& zetten, const zw &kleur) const {
     //uses filterBlockedMoves() on all vectors in the vector of those vectors
     MoveVector geldige_zetten;
-    for(MoveVector currentMovesArr : zetten) {
+    for(const MoveVector& currentMovesArr : zetten) {
         MoveVector arr = filterBlockedMoves(currentMovesArr, kleur);
         geldige_zetten.insert(geldige_zetten.begin(), arr.begin(), arr.end());
     }
     return geldige_zetten;
 }
-MoveVector Game::filterIndividualMoves(MoveVector zetten, const zw &kleur) const {
+MoveVector Game::filterIndividualMoves(const MoveVector& zetten, const zw &kleur) const {
     //pushes moves that are within boundary and have no friendly pieces (enemy or empty)
     MoveVector valid_moves;
     for(Move currentMove : zetten) {
@@ -362,7 +343,7 @@ MoveVector Game::filterIndividualMoves(MoveVector zetten, const zw &kleur) const
     return valid_moves;
 }
 
-MoveVector Game::filterSelfCheckMoves(MoveVector zetten, Move position) const {
+MoveVector Game::filterSelfCheckMoves(const MoveVector& zetten, Move position) const {
     /*clones a temporary copy of the current game instance (to retain const correctness) and filters the moves where
      * the king would be in check in that move*/
     MoveVector geldige_zetten;
@@ -376,7 +357,7 @@ MoveVector Game::filterSelfCheckMoves(MoveVector zetten, Move position) const {
     return geldige_zetten;
 }
 
-MoveVector Game::dissolveMatrix(MoveMatrix matrix) const {
+MoveVector Game::dissolveMatrix(const MoveMatrix& matrix) {
     //dissolves a matrix of moves into a vector of moves
     MoveVector result;
     for(MoveVector currentVector : matrix) {
@@ -384,11 +365,7 @@ MoveVector Game::dissolveMatrix(MoveMatrix matrix) const {
     }
     return result;
 }
-bool Game::validTurn(SchaakStuk *s) const {
-    //returns whether it's the turn of the color of the given piece
-    return currentTurn == s->getKleur();
-}
-bool Game::hasMove(const int &r, const int &k, MoveVector moves) const {
+bool Game::hasMove(const int &r, const int &k, const MoveVector& moves) {
     //returns if the given vector of moves includes a certain move
     for(Move currentMove : moves) {
         if(currentMove.first == r && currentMove.second == k) return true;

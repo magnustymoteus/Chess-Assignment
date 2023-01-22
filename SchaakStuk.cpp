@@ -66,14 +66,14 @@ void SchaakStuk::setThreatenedMoves(Game &game) {
         for(SchaakStuk* currentPiece : game.getStukken()) {
             if(currentPiece->getKleur() != getKleur()) {
                 MoveVector intersection =
-                        game.getMoveIntersection(getValidMoves(), currentPiece->getTakeableMoves());
+                        Game::getMoveIntersection(getValidMoves(), currentPiece->getTakeableMoves());
                 threatenedMoves.insert(threatenedMoves.end(), intersection.begin(), intersection.end());
             }
         }
 }
 bool Pion::zet_geldig(Move zet, const zetType &type, Game &game) const {
     int r = zet.first, k = zet.second;
-    if(!game.isBinnenGrens(r,k)) return false;
+    if(!Game::isBinnenGrens(r,k)) return false;
     bool isGeldig;
     switch(type) {
         case vangbaar:
@@ -91,11 +91,11 @@ bool Pion::zet_geldig(Move zet, const zetType &type, Game &game) const {
 MoveVector Pion::getTakeableMoves() const {
     MoveVector vangbare_zetten;
     int direction = (getKleur() == wit) ? -1 : 1;
-    vangbare_zetten.push_back({getPositie().first+direction, getPositie().second+1});
-    vangbare_zetten.push_back({getPositie().first+direction, getPositie().second-1});
+    vangbare_zetten.emplace_back(getPositie().first+direction, getPositie().second+1);
+    vangbare_zetten.emplace_back(getPositie().first+direction, getPositie().second-1);
     return vangbare_zetten;
 }
-MoveVector Pion::filter_ongeldige_zetten(MoveVector zetten, const zetType &type, Game &game) const {
+MoveVector Pion::filter_ongeldige_zetten(const MoveVector& zetten, const zetType &type, Game &game) const {
     //de pion is een speciale stuk waardoor hij zijn eigen methoden heeft van geldige zetten.
     MoveVector geldige_zetten;
     //alle zetten moeten van hetzelfde type zijn
@@ -128,36 +128,36 @@ MoveVector Pion::geldige_zetten(Game &game, const bool &filterCheckMoves) const 
 }
 MoveVector Toren::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten, verticale_zetten, horizontale_zetten;
-    MoveMatrix verticale_zetten_matrix = game.getVerticalMoves(getPositie());
-    MoveMatrix horizontale_zetten_matrix = game.getHorizontalMoves(getPositie());
+    MoveMatrix verticale_zetten_matrix = Game::getVerticalMoves(getPositie());
+    MoveMatrix horizontale_zetten_matrix = Game::getHorizontalMoves(getPositie());
     verticale_zetten = game.filterBlockedMovesMatrix(verticale_zetten_matrix, getKleur());
     horizontale_zetten = game.filterBlockedMovesMatrix(horizontale_zetten_matrix, getKleur());
-    geldige_zetten = game.dissolveMatrix({verticale_zetten, horizontale_zetten});
+    geldige_zetten = Game::dissolveMatrix({verticale_zetten, horizontale_zetten});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
 MoveVector Loper::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten;
-    MoveMatrix diagonale_zetten = game.getDiagonalMoves(getPositie());
+    MoveMatrix diagonale_zetten = Game::getDiagonalMoves(getPositie());
     geldige_zetten = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
 MoveVector Koningin::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten, verticale, horizontale, diagonale;
-    MoveMatrix verticale_zetten = game.getVerticalMoves(getPositie());
-    MoveMatrix horizontale_zetten = game.getHorizontalMoves(getPositie());
-    MoveMatrix diagonale_zetten = game.getDiagonalMoves(getPositie());
+    MoveMatrix verticale_zetten = Game::getVerticalMoves(getPositie());
+    MoveMatrix horizontale_zetten = Game::getHorizontalMoves(getPositie());
+    MoveMatrix diagonale_zetten = Game::getDiagonalMoves(getPositie());
     verticale = game.filterBlockedMovesMatrix(verticale_zetten, getKleur());
     horizontale = game.filterBlockedMovesMatrix(horizontale_zetten, getKleur());
     diagonale = game.filterBlockedMovesMatrix(diagonale_zetten, getKleur());
-    geldige_zetten = game.dissolveMatrix({verticale, horizontale, diagonale});
+    geldige_zetten = Game::dissolveMatrix({verticale, horizontale, diagonale});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }
 MoveVector Koning::geldige_zetten(Game &game, const bool &filterCheckMoves) const {
     MoveVector geldige_zetten;
-    MoveVector radius = game.getRadiusMoves(getPositie(), 1);
+    MoveVector radius = Game::getRadiusMoves(getPositie(), 1);
     geldige_zetten = game.filterIndividualMoves(radius, getKleur());
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
@@ -174,7 +174,7 @@ MoveVector Paard::geldige_zetten(Game &game, const bool &filterCheckMoves) const
                                                {getPositie().first+2, getPositie().second-1},
                                                {getPositie().first+2, getPositie().second+1},
     };
-    geldige_zetten = game.dissolveMatrix({game.filterIndividualMoves(moves1, getKleur()), game.filterIndividualMoves(moves2, getKleur())});
+    geldige_zetten = Game::dissolveMatrix({game.filterIndividualMoves(moves1, getKleur()), game.filterIndividualMoves(moves2, getKleur())});
     if(filterCheckMoves) geldige_zetten = game.filterSelfCheckMoves(geldige_zetten, getPositie());
     return geldige_zetten;
 }

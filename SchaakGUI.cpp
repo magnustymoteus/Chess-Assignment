@@ -5,7 +5,6 @@
 #include "SchaakGUI.h"
 #include "guicode/message.h"
 #include "guicode/fileIO.h"
-#include <iostream>
 // Constructor
 SchaakGUI::SchaakGUI():ChessWindow(nullptr) {
     update();
@@ -15,7 +14,7 @@ SchaakGUI::SchaakGUI():ChessWindow(nullptr) {
 // Deze functie wordt opgeroepen telkens er op het schaakbord
 // geklikt wordt. x,y geeft de positie aan waar er geklikt
 // werd; r is de 0-based rij, k de 0-based kolom
-void SchaakGUI::endCheck() {
+bool SchaakGUI::endCheck() {
     bool isSchaakMat = g.schaakmat(g.getCurrentTurn());
     bool isPat = g.pat(g.getCurrentTurn());
     if(isSchaakMat) {
@@ -31,12 +30,13 @@ void SchaakGUI::endCheck() {
         g.setStartBord();
         update();
     }
+    return isSchaakMat || isPat;
 }
 bool SchaakGUI::moveSelectedPiece(const int &r, const int &k) {
     if(g.move(selectedPiece, r, k)) {
         update();
-        endCheck();
         selectedPiece = nullptr;
+        if(endCheck()) return false;
         return true;
     }
     else if(r!=selectedPiece->getPositie().first || k!=selectedPiece->getPositie().second) {
@@ -47,14 +47,14 @@ bool SchaakGUI::moveSelectedPiece(const int &r, const int &k) {
 }
 void SchaakGUI::clicked(int r, int k) {
     removeAllMarking();
-    if(!isPieceSelected() /*&& g.getCurrentTurn() == wit*/) {
+    if(!isPieceSelected() && g.getCurrentTurn() == wit) {
         if (g.hasPiece(r, k)) {
             SchaakStuk *clickedPiece = g.getPiece(r, k);
-            if (g.validTurn(clickedPiece)) {
+            if (clickedPiece->getKleur() == wit) {
                 selectedPiece = clickedPiece;
                 setTileSelect(r, k, true);
                 selectTiles(clickedPiece->getValidMoves());
-                displayThreatenedMoves(clickedPiece->getThreatenedMoves());
+                displayThreatenedMoves(clickedPiece);
             }
         }
     }
@@ -75,14 +75,15 @@ bool SchaakGUI::isPieceSelected() const {
     return selectedPiece != nullptr;
 }
 
-void SchaakGUI::selectTiles(MoveVector tiles) {
+void SchaakGUI::selectTiles(const MoveVector &tiles) {
         for(Move currentMove : tiles) {
             setTileFocus(currentMove.first, currentMove.second, displayMoves());
         }
 }
 
-void SchaakGUI::displayThreatenedMoves(MoveVector tiles) {
-        for (Move currentMove: tiles) {
+void SchaakGUI::displayThreatenedMoves(SchaakStuk *s) {
+        if(s->getThreatenedMoves().empty()) s->setThreatenedMoves(g);
+        for (Move currentMove : s->getThreatenedMoves()) {
             setTileThreat(currentMove.first, currentMove.second, displayMoves());
         }
 }
@@ -150,7 +151,7 @@ void SchaakGUI::updateVisualization() {
     displayThreatenedPieces();
     if(selectedPiece != nullptr) {
         selectTiles(selectedPiece->getValidMoves());
-        displayThreatenedMoves(selectedPiece->getThreatenedMoves());
+        displayThreatenedMoves(selectedPiece);
     }
 }
 

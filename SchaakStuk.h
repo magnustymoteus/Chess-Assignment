@@ -59,7 +59,7 @@ public:
         return Piece(Piece::Pawn,getKleur()==wit?Piece::White:Piece::Black);
     }
     bool zet_geldig(Move zet, const zetType &type, Game &game) const;
-    MoveVector filter_ongeldige_zetten(MoveVector zetten, const zetType &type, Game &game) const;
+    MoveVector filter_ongeldige_zetten(const MoveVector& zetten, const zetType &type, Game &game) const;
     MoveVector geldige_zetten(Game &game, const bool &filterCheckMoves=true) const;
     bool heeft_bewogen() const;
     MoveVector getTakeableMoves() const;

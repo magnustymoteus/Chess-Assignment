@@ -28,36 +28,32 @@ public:
 
     std::vector<SchaakStuk*> getStukken() const {return stukken;}
     SchaakStuk * getPiece(const int &r, const int &k) const;
-    void printBord() const;
-    bool isBinnenGrens(const int &r, const int &k) const;
+    static bool isBinnenGrens(const int &r, const int &k) ;
     void setPiece(const int &r, const int &k, SchaakStuk* s, const bool &deletePreviousPos=false);
     void removePiece(const int &r, const int &k);
     bool hasPiece(const int &r, const int &k) const;
     bool hasFriendlyPiece(const int &r, const int &k, const zw &kleur) const;
     bool hasEnemyPiece(const int &r, const int &k, const zw &kleur) const;
     void updateAllPieces(const bool &filterCheckMoves=true);
-    void updateMoveThreats();
-    MoveVector getRadiusMoves(Move pos, const int &radiusFactor) const;
-    MoveMatrix getDiagonalMoves(Move pos) const;
-    MoveMatrix getHorizontalMoves(Move pos) const;
-    std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(Move pos) const;
-    MoveVector filterBlockedMoves(MoveVector zetten, const zw &kleur) const;
-    MoveVector filterBlockedMovesMatrix(MoveMatrix zetten, const zw &kleur) const;
-    MoveVector dissolveMatrix(MoveMatrix matrix) const;
-    MoveVector filterIndividualMoves(MoveVector zetten, const zw &kleur) const;
-    MoveVector filterSelfCheckMoves(MoveVector zetten, Move position) const;
-    bool hasMove(const int &r, const int &k, MoveVector moves) const;
-    bool validTurn(SchaakStuk *s) const;
+    static MoveVector getRadiusMoves(Move pos, const int &radiusFactor) ;
+    static MoveMatrix getDiagonalMoves(Move pos) ;
+    static MoveMatrix getHorizontalMoves(Move pos) ;
+    static std::vector<std::vector<std::pair<int ,int>>> getVerticalMoves(Move pos) ;
+    MoveVector filterBlockedMoves(const MoveVector& zetten, const zw &kleur) const;
+    MoveVector filterBlockedMovesMatrix(const MoveMatrix& zetten, const zw &kleur) const;
+    static MoveVector dissolveMatrix(const MoveMatrix& matrix) ;
+    MoveVector filterIndividualMoves(const MoveVector& zetten, const zw &kleur) const;
+    MoveVector filterSelfCheckMoves(const MoveVector& zetten, Move position) const;
+    static bool hasMove(const int &r, const int &k, const MoveVector& moves) ;
     void nextTurn();
     zw getCurrentTurn() const {return currentTurn;}
-    std::array<SchaakStuk*, 2> getKoningen() {return koningen;}
     void setKoningen(std::array<SchaakStuk*, 2> newKoningen) {koningen=newKoningen;}
     void setCurrentTurn(zw newTurn) {currentTurn=newTurn;}
     void pushToStukken(SchaakStuk* stuk) {stukken.push_back(stuk);}
     void setSchaakBord(const int &r, const int &k, SchaakStuk* stuk) {schaakBord[r][k] = stuk;}
-    MoveVector getMoveIntersection(MoveVector zetten1, MoveVector zetten2) const;
-    std::pair<SchaakStuk*, Move> getRandomMoveOfPiece(std::pair<SchaakStuk*, MoveVector> moves) const;
-    std::pair<SchaakStuk*, MoveVector> getRandomPieceOfVector(std::vector<std::pair<SchaakStuk*, MoveVector>> pieces) const;
+    static MoveVector getMoveIntersection(const MoveVector& zetten1, const MoveVector& zetten2) ;
+    static std::pair<SchaakStuk*, Move> getRandomMoveOfPiece(std::pair<SchaakStuk*, MoveVector> moves) ;
+    static std::pair<SchaakStuk*, MoveVector> getRandomPieceOfVector(std::vector<std::pair<SchaakStuk*, MoveVector>> pieces) ;
     std::tuple<MoveVector, MoveVector, MoveVector, MoveVector> getPrioritizedMovesOfPiece(SchaakStuk *s) const;
     void takeRandomPrioritizedMove(const zw &kleur);
 private:
@@ -65,6 +61,7 @@ private:
     std::array<SchaakStuk*, 2> koningen {nullptr};
     std::vector<SchaakStuk*> stukken;
     zw currentTurn;
+
     // Hier zet jij jouw datastructuur neer om het bord te bewaren ...
 };
 
